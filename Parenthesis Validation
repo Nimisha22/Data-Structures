@@ -1,0 +1,141 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#define MAX 25
+
+struct stack {
+  char stk[MAX];
+  int top;
+} s;
+
+void push(char item) {
+    if (s.top == (MAX - 1))
+       printf ("Stack is Full\n");
+    else {
+       s.top = s.top + 1;
+       s.stk[s.top] = item;
+    }
+}
+
+void pop() {
+   if (s.top == - 1)
+        printf ("Stack is Empty\n");
+   else
+        s.top = s.top - 1;
+}
+
+int main() {
+   char exp[MAX];
+   int i = 0, flag = 0;
+   s.top = -1;
+   printf("\nEnter an expression : ");
+   scanf("%s", exp);
+   for(i = 0; i < strlen(exp); i++) {
+       if(exp[i] == '(' || exp[i] == '[' || exp[i] == '{') {
+          push(exp[i]);
+          continue;
+       }
+       else if(exp[i] == ')' || exp[i] == ']' || exp[i] == '}') {
+          switch(exp[i]){
+           case ')':
+               if(s.stk[s.top] == '(')
+                  pop();
+               else
+                  flag = 1;
+               break;
+           case ']':
+               if(s.stk[s.top] == '[')
+                  pop();
+               else
+                  flag = 1;
+               break;
+           case '}':
+               if(s.stk[s.top] == '{')
+                  pop();
+              else
+                  flag = 1;
+              break;
+           }
+       }
+    }
+    if (flag == 1)
+        printf("\nUnbalanced Expression");
+    else if(flag == 0 && s.top == -1)
+       printf("\nBalanced Expression\n");
+    return 0;
+}
+
+--------------------------------- ANOTHER APPROACH -----------------------------------------------------------
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+#define MAX 25
+
+int top = -1;
+int stack[MAX];
+
+void push(char item) {
+      if(top == (MAX - 1)) {
+            printf("Stack is Full\n");
+            return;
+      }
+      top++;
+      stack[top] = item;
+}
+
+char pop() {
+      if(top == -1) {
+            printf("Stack is Empty\n");
+            exit(1);
+      }
+      return(stack[top--]);
+}
+
+int match_paranthesis(char a, char b) {
+      if(a == '[' && b == ']')
+                return 1;
+      else if(a == '{' && b == '}')
+                return 1;
+      else if(a == '(' && b == ')')
+                return 1;
+      return 0;
+}
+
+int check_paranthesis(char expression[]) {
+      int count; char temp;
+      for(count = 0; count < strlen(expression); count++)
+      {
+            if(expression[count] == '(' || expression[count] == '{' || expression[count] == '[')
+                   push(expression[count]);
+            if(expression[count] == ')' || expression[count] == '}' || expression[count] == ']') {
+                  if(top == -1)
+                        return 0;
+                  else {
+                        temp = pop();
+                        if(!match_paranthesis(temp, expression[count]))
+                             return 0;
+                        }
+            }
+      }
+      if(top == -1)
+         return 1;
+      else
+         return 0;
+}
+
+int main()
+{
+      char expression[MAX];
+      int validity;
+      printf("\nEnter an Algebraic Expression:\t");
+      scanf("%s", expression);
+      validity = check_paranthesis(expression);
+      if(validity == 1)
+            printf("The Expression has Balanced Parentheses\n");
+      else
+            printf("The Expression has unbalanced parentheses\n");
+      return 0;
+}
+
