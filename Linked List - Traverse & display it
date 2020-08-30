@@ -33,6 +33,14 @@ void display(struct node *p){
         }
 }
 
+/* Recursive way 
+void display (struct node *p) {
+      if(p != NULL) {
+         printf("%d", p -> data);
+         display(p -> next);
+      }
+}
+*/
 
 int main()
 {
