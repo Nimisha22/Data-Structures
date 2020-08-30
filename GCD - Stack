@@ -1,0 +1,52 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+
+#define MAX 25
+
+struct stack {
+  int stk[MAX];
+  int top;
+} s;
+
+void push(int item) {
+    if (s.top == (MAX - 1))
+       printf ("Stack is Full\n");
+    else {
+       s.top++;
+       s.stk[s.top] = item;
+    }
+}
+
+
+void pop() {
+      if(s.top == -1) {
+            printf("Stack is Empty\n");
+            exit(1);
+      }
+      s.top--;
+}
+
+int gcd(int a, int b) {
+   if (a == 0)
+     return b;
+   else if (b == 0)
+     return a;
+   else if (a > b) {
+     push(a - b);
+     return gcd(s.stk[s.top], b);
+   }
+   push(b - a);
+   return gcd(a, s.stk[s.top]);
+
+}
+
+int main() {
+   int a, b;
+   s.top = -1;
+   printf("\nEnter first and second number : ");
+   scanf("%d %d", &a, &b);
+
+    printf("GCD is %d ", gcd(a, b));
+    return 0;
+}
