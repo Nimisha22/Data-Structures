@@ -1,0 +1,57 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+#include<string.h>
+
+#define MAX 25
+
+struct stack {
+  char stk[MAX];
+  int top;
+} s;
+
+void push(char item) {
+    if (s.top == (MAX - 1))
+         printf ("Stack is Full\n");
+    else {
+       s.top++;
+       s.stk[s.top] = item;
+    }
+    //printf("\nElement pushed is %c", s.stk[s.top]);
+}
+
+
+void pop() {
+      if(s.top == -1) {
+            printf("Stack is Empty\n");
+            exit(1);
+      }
+      s.top--;
+}
+
+
+int main() {
+   char n[MAX], rev[MAX];
+   int i;
+   rev[0] = '\0';
+   s.top = -1;
+   printf("\nEnter name : ");
+   gets(n);
+
+    printf("\nReversed name is ");
+    for (i = 0; i < strlen(n); i++){
+        push(n[i]);
+    }
+    for (i = 0; i < strlen(n); i++){
+        //printf("\n%c", s.stk[s.top]);
+        strncat(rev, &s.stk[s.top], 1);
+        pop();
+    }
+
+    printf("\n%s", rev);
+    if(strcmp(rev, n) == 0)
+            printf("\nPalindrome");
+    else
+            printf("\nNot a Palindrome");
+    return 0;
+}
