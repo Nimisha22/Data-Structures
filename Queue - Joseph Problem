@@ -1,0 +1,117 @@
+#include <stdio.h>
+
+
+int josephus(int n, int k)  {
+  if (n == 1)
+    return 1;
+  else
+    /* The position returned by josephus(n - 1, k) is adjusted because the
+       recursive call josephus(n - 1, k) considers the original position
+       k%n + 1 as position 1 */
+    return (josephus(n - 1, k) + k - 1) % n + 1;
+}
+
+
+int main()  {
+  int n, m, i;
+  printf("Enter n and m");
+  scanf("%d %d", &n, &m);
+  printf("The chosen place is %d", josephus(n, m));
+
+  /*
+  for(i = 0; i<n; i++)
+    enqueue(q, i);
+  for(i = 0; i<n; i++) {
+    for (j = 1; j < m; j++){
+        x = dequeue(x);
+        enqueue(x);
+    }
+    dequeue(x);
+  }
+  */
+
+  return 0;
+}
+
+/*
+int dequeuefront(int *value)
+{
+extern int queue[],front,rear;
+if(empty())
+return -1;
+*value=queue[front];
+if(front==rear)
+front = rear = -1;
+else
+front = front + 1;
+return 0;
+}
+
+int enqueuerear(int value)
+{
+extern int queue[],front,rear;
+if(empty())
+front=rear=0;
+else if(full())
+return -1;
+else
+rear =rear + 1;
+queue[rear]=value;
+return 0;
+}
+
+void main()
+{
+int status,choice,data;
+clrscr();
+display();
+while(1)
+{
+printf("\nEnter ur choice");
+scanf("%d",&choice);
+switch(choice)
+{
+case 0:
+display();
+break;
+case 1:
+printf("\n enter the element:");
+fflush(stdin);
+scanf("%d",&data);
+status=enqueuefront(data);
+if(status==-1)
+printf("dequeue overflow on enqueue at front");
+break;
+case 2:
+printf("\n enter the element");
+fflush(stdin);
+scanf("%d",&data);
+status=enqueuerear(data);
+if(status==-1)
+printf("dequeue overflow on enqueue at rear");
+break;
+case 3:
+status=dequeuefront(&data);
+if(status==-1)
+printf("\ndequeue underflow on dequeue at front");
+else
+printf("\n the dequeue value is %d",data);
+break;
+case 4:
+status=dequeuerear(&data);
+if(status==-1)
+printf("\ndequeue underflow on dequeue at rear");
+else
+printf("\n the dequeue value is %d",data);
+break;
+case 5:
+printf("number of elements in dequeue id %d",size());
+break;
+case 6:
+view();
+break;
+default:
+printf("\n end of run");
+exit(0);
+}}}
+*/
