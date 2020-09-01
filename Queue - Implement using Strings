@@ -90,7 +90,7 @@ int main() {
         scanf("%d", &choice);
 
         switch(choice){
-            case 1: printf("\n\nPlease enter value to enqueue\n");
+            case 1: printf("\n\nPlease enter the name of passenger to enqueue\n");
                     getchar();  // By using getchar we retrieve extra \n in the buffer
                     gets(en);
                     Enqueue(Q, en);
@@ -124,7 +124,7 @@ Please enter number corresponding to the action you want to perform
 1
 
 
-Please enter value to enqueue
+Please enter the name of passenger to enqueue
 Nimisha Doshi
 
 
@@ -136,7 +136,7 @@ Please enter number corresponding to the action you want to perform
 1
 
 
-Please enter value to enqueue
+Please enter the name of passenger to enqueue
 Nikita Somani
 
 
