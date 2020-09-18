@@ -1,0 +1,221 @@
+#include<stdio.h>
+
+typedef struct LinkedList list;
+
+struct LinkedList {
+    int data;
+    struct LinkedList *next;
+};
+
+
+void addNodeAtEnd (list **head){
+    int x;
+    printf("\nEnter Data: ");
+    scanf("%d", &x);
+    
+    list *node = (list*) malloc (sizeof(list));
+    node -> data = x;
+    node -> next = NULL;
+    
+    if(*head == NULL)
+        *head = node;
+    else {
+        list *temp = *head;
+        while(temp -> next != NULL)
+            temp = temp -> next;
+        temp -> next = node;
+    }
+}
+
+
+void addNodeAtBeginning (list **head){
+    int x;
+    printf("\nEnter Data: ");
+    scanf("%d", &x);
+    
+    list *node = (list*) mallo c(sizeof(list));
+    node -> data = x;
+    node -> next = NULL;
+    
+    if(*head == NULL)
+        *head = node;
+    else {
+        node -> next = *head;
+        *head = node;
+    }
+}
+
+
+void deleteNodeFromEnd (list **head){
+    if(*head == NULL){
+        printf("\nList is Empty.");
+    } else if ((*head) -> next == NULL){
+        *head = NULL;
+    } else {
+        list *temp = *head, *temp2 = *head;
+        while(temp -> next != NULL){
+            temp2 = temp;
+            temp = temp -> next;
+        }
+        free(temp);
+        temp2 -> next = NULL;
+    }
+}
+
+
+void deleteNodeFromBeginning (list **head){
+    if(*head == NULL){
+        printf("\nList is Empty.");
+    } else if ((*head) -> next == NULL){
+        *head = NULL;
+    } else {
+        list *temp = *head;
+        *head = (*head) -> next;
+        free(temp);
+    }
+}
+
+
+void addInMiddle (list **head) {
+    int data, pos, i;
+    list *temp;
+    
+    printf("\nEnter Data: ");
+    scanf("%d", &data);
+    printf("\nEnter location where you want to enter ");
+    scanf("%d", &pos);
+    
+    list *node = (list *) malloc (sizeof(list));
+
+    if(node == NULL) {
+        printf("Unable to allocate memory.");
+    } else {
+        node -> data = data;
+        node -> next = NULL;
+
+        temp = *head;
+        for(i = 2; i <= pos - 1; i++) {
+            temp = temp -> next;
+            if(temp == NULL)
+                break;
+        }
+
+        if(temp != NULL) {
+            // Link address part of new node
+            node -> next = temp -> next;
+
+            // Link address part of n-1 node
+            temp -> next = node;
+         }
+    }
+}
+
+
+void deleteMiddleNode (list **head) {
+    int i, position;
+    list *toDelete, *prevNode;
+
+    printf("\nEnter location which you want to delete ");
+    scanf("%d", &position);
+    
+    if(*head == NULL) {
+        printf("List is already empty.");
+    } else {
+        toDelete = *head;
+        prevNode = *head;
+
+        for(i = 2; i <= position; i++) {
+            prevNode = toDelete;
+            toDelete = toDelete -> next;
+
+            if(toDelete == NULL)
+                break;
+        }
+
+        if(toDelete != NULL) {
+            if(toDelete == *head)
+                *head = (*head) -> next;
+
+            prevNode -> next = toDelete -> next;
+            toDelete -> next = NULL;
+
+            free(toDelete);
+        }
+    }
+}
+
+
+void displayList (list *head) {
+    printf("\nDisplaying List:");
+    while(head != NULL){
+        printf(" %d -> ", head -> data);
+        head = head -> next;
+    }
+}
+
+
+void menu() {
+    printf("\n\nChoose from the following:");
+    printf("\n\n1. Add at End.");
+    printf("\n\n2. Add at Beginning.");
+    printf("\n\n3. Remove from End.");
+    printf("\n\n4. Remove from Beginning.");
+    printf("\n\n5. Add in Middle.");
+    printf("\n\n6. Delete from Middle.");
+    printf("\n\n7. Exit.");
+    printf("\n\nEnter Here: ");
+}
+
+
+int main() {
+    list *head = NULL;
+    int n, flag = 1;
+    
+    while(flag) {
+        menu();
+        scanf("%d", &n);
+        
+        switch(n){
+            case 1:
+                addNodeAtEnd(&head);
+                displayList(head);
+                break;
+
+            case 2:
+                addNodeAtBeginning(&head);
+                displayList(head);
+                break;
+
+            case 3:
+                deleteNodeFromEnd(&head);
+                displayList(head);
+                break;
+
+            case 4:
+                deleteNodeFromBeginning(&head);
+                displayList(head);
+                break;
+
+            case 5:
+                addInMiddle(&head);
+                displayList(head);
+                break;
+
+            case 6:
+                deleteMiddleNode(&head);
+                displayList(head);
+                break;
+
+            case 7:
+                flag = 0;
+                break;
+            
+            default:
+                printf("Wrong choice. Please enter number according to what operation you would like to perform");
+
+        }
+    }
+
+    getch();
+    return 0;
+}
