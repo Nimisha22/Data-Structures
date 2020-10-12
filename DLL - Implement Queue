@@ -1,0 +1,153 @@
+Problem Statement
+Implement ADD and DELETE operations of QUEUE on Doubly linked lists.
+
+----------------------------------------------------------------------------------------------
+Code
+
+// A C program to demonstrate linked list based implementation of queue
+#include <stdio.h>
+#include <stdlib.h>
+
+// A linked list node to store a queue entry
+struct QNode {
+    int key;
+    struct QNode* next;
+};
+
+// The queue, front stores the front node of LL and rear stores the last node of LL
+struct Queue {
+    struct QNode *front, *rear;
+};
+
+// A utility function to create a new linked list node.
+struct QNode* newNode(int k) {
+    struct QNode* temp = (struct QNode*) malloc (sizeof(struct QNode));
+    temp->key = k;
+    temp->next = NULL;
+    return temp;
+}
+
+// A utility function to create an empty queue
+struct Queue* createQueue() {
+    struct Queue* q = (struct Queue*)malloc(sizeof(struct Queue));
+    q->front = q->rear = NULL;
+    return q;
+}
+
+// The function to add a key k to q
+void enQueue(struct Queue* q, int k) {
+    // Create a new LL node
+    struct QNode* temp = newNode(k);
+    printf("%d enqueued", k);
+
+    // If queue is empty, then new node is front and rear both
+    if (q->rear == NULL) {
+        q->front = q->rear = temp;
+        return;
+    }
+
+    // Add the new node at the end of queue and change rear
+    q->rear->next = temp;
+    q->rear = temp;
+}
+
+// Function to remove a key from given queue q
+void deQueue(struct Queue* q) {
+    // If queue is empty, return NULL.
+    if (q->front == NULL)
+        return;
+
+    // Store previous front and move front one node ahead
+    struct QNode* temp = q->front;
+    printf("%d dequeued", q->front->key);
+
+    q->front = q->front->next;
+
+    // If front becomes NULL, then change rear also as NULL
+    if (q->front == NULL)
+        q->rear = NULL;
+
+    free(temp);
+}
+
+
+int main() {
+    struct Queue* q = createQueue();
+    int choice, flag = 1, entry;
+
+    while(flag == 1) {
+        printf("\n\nPlease enter number corresponding to the action you want to perform\n");
+        printf("1. Enqueue at rear of queue\n");
+        printf("2. Dequeue at front of queue\n");
+        printf("3. Terminate program\n");
+
+        scanf("\n\n%d", &choice);
+
+        switch(choice){
+            case 1: printf("\n\nPlease enter value to enqueue ");
+                    scanf("%d", &entry);
+                    enQueue(q, entry);
+                    break;
+
+            case 2: deQueue(q);
+                    break;
+
+            case 3: flag = 0;
+                    break;
+
+            default: printf("\n\nWrong choice");
+
+
+        }
+    }
+
+    return 0;
+}
+
+-----------------------------------------------------------------------------
+Output 
+
+Please enter number corresponding to the action you want to perform
+1. Enqueue at rear of queue
+2. Dequeue at front of queue
+3. Terminate program
+1
+
+
+Please enter value to enqueue 1
+1 enqueued
+
+Please enter number corresponding to the action you want to perform
+1. Enqueue at rear of queue
+2. Dequeue at front of queue
+3. Terminate program
+1
+
+
+Please enter value to enqueue 2
+2 enqueued
+
+Please enter number corresponding to the action you want to perform
+1. Enqueue at rear of queue
+2. Dequeue at front of queue
+3. Terminate program
+2
+1 dequeued
+
+Please enter number corresponding to the action you want to perform
+1. Enqueue at rear of queue
+2. Dequeue at front of queue
+3. Terminate program
+4
+
+
+Wrong choice
+
+Please enter number corresponding to the action you want to perform
+1. Enqueue at rear of queue
+2. Dequeue at front of queue
+3. Terminate program
+3
+
+Process returned 0 (0x0)   execution time : 23.841 s
+Press any key to continue.
