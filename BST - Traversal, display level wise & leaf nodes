@@ -1,0 +1,441 @@
+Problem Statement:
+ Write a menu driven program to create a binary search tree and perform non-recursive operations on it
+ 1. Postorder Traversal
+ 2. Display a tree level wise
+ 3. display leaf nodes of tree
+*/
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+typedef struct node {
+    int data;
+    struct node *left, *right;
+} tree;
+
+
+typedef struct {
+    tree *data[50];
+    int size;
+} stack;
+typedef stack queue;
+
+
+void menu();
+
+
+tree* newnode(int value) {
+    tree *node = malloc(sizeof(tree));
+    node->data = value;
+    node->left = NULL;
+    node->right = NULL;
+
+    return node;
+}
+
+
+void push(stack *s, tree *n){
+    s->data[s->size] = n;
+    s->size++;
+}
+
+
+tree* pop(stack *s){
+    tree *ret = s->data[s->size - 1];
+    s->size--;
+    return ret;
+}
+
+
+tree* peek(stack *s){
+    return s->data[s->size - 1];
+}
+
+
+void enqueue(queue *q, tree *n){
+    q->data[q->size] = n;
+    q->size++;
+}
+
+
+tree* dequeue(queue *q){
+    tree *ret = q->data[0];
+
+    for (int i = 0; i < q->size - 1; i++)
+        q->data[i] = q->data[i + 1];
+    q->size--;
+
+    return ret;
+}
+
+
+// this function returns minimum valued node from root
+tree* tree_min(tree *root){
+    if(!root) return NULL;
+
+    while(root->left) root = root->left;
+    return root;
+}
+
+
+// this function inserts a value into a BST tree
+void insert(tree **root, int value) {
+    if(root == NULL) return;
+
+    if (*root == NULL) {
+        *root = newnode(value);
+        return;
+    }
+
+    tree *current = *root;
+
+    while (current != NULL) {
+        if (value <= current->data) {
+            if (current->left == NULL) {
+                current->left = newnode(value);
+                return;
+            } else
+                current = current->left;
+        }
+
+        else if (current->right == NULL) {
+            current->right = newnode(value);
+            return;
+        } else
+            current = current->right;
+
+    }
+}
+
+
+// this function deletes the given node from tree
+void delete(tree **root, int value){
+    if(*root == NULL) return;
+
+    if((*root)->data == value){
+        // find minimum on right subtree and attach root->left with that node
+        tree *min_ = tree_min((*root)->right);
+        min_->left = (*root)->left;
+        tree *temp = *root;
+        *root = (*root)->right;
+
+        free(temp);
+        return;
+    }
+
+    tree *current = *root;
+    // get parent of the node to be deleted
+    while(current->left && current->right && current->left->data != value && current->right->data != value){
+        if(value < current->data) current = current->left;
+        else current = current->right;
+    }
+
+    // if the value doesnt exist
+    if(!current) return;
+
+    tree *child = NULL;
+    // if we have to delete right child
+    if(current->right->data == value){
+        child = current->right;
+
+        // if it doesnt have any children
+        if(!(child->left || child->right)){
+            current->right = NULL;
+            free(child);
+        }
+
+        // if it has only left child
+        else if(child->left && !child->right){
+            current->right = child->left;
+            free(child);
+        }
+
+        // if it has only right child
+        else if(!child->left && child->right){
+            current->right = child->right;
+            free(child);
+        }
+
+        // if it has both children
+        else {
+            // find min on right subtree
+            tree *min_ = tree_min(child->right);
+            min_->left = child->left;
+            current->right = child->right;
+            free(child);
+        }
+        return;
+    }
+
+    // if we have to delete right child
+    else if(current->left->data == value){
+        child = current->left;
+
+        // if it doesnt have any children
+        if(!(child->left || child->right)){
+            current->left = NULL;
+            free(child);
+        }
+
+        // if it has only left child
+        else if(child->left && !child->right){
+            current->left = child->left;
+            free(child);
+        }
+
+        // if it has only right child
+        else if(!child->left && child->right){
+            current->left = child->right;
+            free(child);
+        }
+
+        // if it has both children
+        else {
+            // find min on right subtree
+            tree *min_ = tree_min(child->right);
+            min_->left = child->left;
+            current->left = child->right;
+            free(child);
+        }
+        return;
+    }
+}
+
+
+// use post order traversal (LRD)
+void post_display(tree *root) {
+    printf("\nPostorder sequence is\n\n");
+    if (root == NULL) {
+        printf("Root is empty");
+        return;
+    }
+
+    stack nodes = {.size = 0};
+    tree *current = root;
+    tree *prev = NULL;
+
+    do {
+        while(current){
+            push(&nodes, current);
+            current = current->left;
+        }
+        current = peek(&nodes);
+
+        // if right exists and we have not yet touched/processed right then process right side
+        if(current->right && prev != current->right) {
+            current = current->right;
+        }
+        else {
+            printf("%d ", current->data);
+            current = NULL;
+            prev = pop(&nodes);
+        }
+    } while(nodes.size > 0);
+    printf("\n\n");
+}
+ 
+
+// Function to display nodes of tree level wise
+void display_levelwise(tree *root) {
+    printf("\n\nLevel wise sequence is\n\n");
+    if(root == NULL) {
+        printf("Tree is empty.");
+        return;
+    }
+
+    queue q = {.size = 0};
+    tree *current = NULL;
+    enqueue(&q, root);
+    int nodes = 0;      // count of how many nodes printed
+    int limiter = 1;    // used to print newline
+
+    while(q.size) {
+        current = dequeue(&q);
+
+        if(nodes == limiter){
+            printf("\n");
+            nodes = 0;          // reset nodes
+            limiter <<= 1;      // since every level has atmost twice the nodes as previous level, double the limiter
+        }
+
+        nodes++;
+        if(!current) continue;
+
+        printf("%d ", current->data);
+
+        enqueue(&q, current->left);
+        enqueue(&q, current->right);
+    }
+    printf("\n\n");
+}
+
+
+// Function to display all leaf nodes of tree
+void display_leaves(tree *root){
+    printf("\nLeaf nodes are\n\n");
+    if(root == NULL){
+        printf("Root is null");
+        return;
+    }
+
+    queue nodes = {.size = 0};
+    enqueue(&nodes, root);
+    tree *current;
+
+    while(nodes.size){
+        current = dequeue(&nodes);
+        // if it does not have children then print it
+        if(!(current->left || current->right)) printf("%d ", current->data);
+
+        if(current->left)  enqueue(&nodes, current->left);
+        if(current->right) enqueue(&nodes, current->right);
+    }
+    printf("\n\n");
+}
+
+
+void start(tree *root) {
+    int choice, val, flag = 0;
+    while(flag == 0) {
+    printf("\nEnter your choice: ");
+    scanf("%d", &choice);
+    switch(choice){
+        case 1:
+            printf("Enter a number: ");
+            scanf("%d", &val);
+            insert(&root, val);
+            break;
+        case 2:
+            printf("Enter value to be deleted: ");
+            scanf("%d", &val);
+            delete(&root, val);
+            break;
+        case 3:
+            post_display(root);
+            break;
+        case 4:
+            display_levelwise(root);
+            break;
+        case 5:
+            display_leaves(root);
+            break;
+        case 6:
+            exit(0);
+
+        default:
+            printf("Enter a valid choice!");
+            menu();
+      }
+    }
+
+}
+
+
+void main() {
+    tree *root = NULL;
+    menu();
+    start(root);
+}
+
+
+void menu() {
+    for(int i = 0; i < 50; i++)
+        printf("-");
+    printf("\n1. Insert a node\n2. Delete a node\n3. Display the tree in postorder\n4. Display the tree levelwise\n5. Display leaf nodes\n6. Exit\n");
+    for(int i = 0; i < 50; i++)
+        printf("-");
+    printf("\n");
+}
+
+
+
+
+
+
+
+
+
+Output
+
+--------------------------------------------------
+1. Insert a node
+2. Delete a node
+3. Display the tree in postorder
+4. Display the tree levelwise
+5. Display leaf nodes
+6. Exit
+--------------------------------------------------
+
+Enter your choice: 1
+Enter a number: 50
+
+Enter your choice: 1
+Enter a number: 40
+
+Enter your choice: 1
+Enter a number: 60
+
+Enter your choice: 1
+Enter a number: 10
+
+Enter your choice: 1
+Enter a number: 44
+
+Enter your choice: 1
+Enter a number: 55
+
+Enter your choice: 1
+Enter a number: 65
+
+Enter your choice: 3
+
+Postorder sequence is
+
+10 44 40 55 65 60 50
+
+
+Enter your choice: 4
+
+
+Level wise sequence is
+
+50
+40 60
+10 44 55 65
+
+
+
+Enter your choice: 5
+
+Leaf nodes are
+
+10 44 55 65
+
+
+Enter your choice: 2
+Enter value to be deleted: 10
+
+Enter your choice: 4
+
+
+Level wise sequence is
+
+50
+40 60
+44 55 65
+
+
+Enter your choice: 5
+
+Leaf nodes are
+
+44 55 65
+
+
+Enter your choice: 6
+
+Process returned 0 (0x0)   execution time : 86.265 s
+Press any key to continue.
