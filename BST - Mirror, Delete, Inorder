@@ -1,0 +1,471 @@
+Problem Statement --
+Write a menu driven program to create a Binary Search Tree and perform following non-recursive operations on it.
+1. Inorder Traversal
+2. Display mirror image of a tree by creating new tree
+3. Delete a node from a tree.
+
+-----------------------------------------------------------------------------------
+Code - 
+
+
+#include <stdio.h>
+
+int cnt = 0;
+
+typedef struct Tree T;
+struct Tree {
+   int Data;
+   struct Tree *Left;
+   struct Tree *Right;
+};
+
+
+T *Root1 = NULL;
+T *Root2 = NULL;
+
+
+void Mirror(int Data) {
+    T *NewNode = (T*)malloc(sizeof(T));
+    NewNode->Data = Data;
+    NewNode->Left = NULL;
+    NewNode->Right = NULL;
+    T *Temp = Root2;
+    
+    if(Root2 == NULL)
+        Root2 = NewNode;
+    else {
+        if(Temp->Left != NULL || Temp->Right != NULL) {
+            jump2:
+                while(Temp->Data >= NewNode->Data && Temp->Right != NULL) {
+                Temp = Temp->Right;
+                if(Temp->Right == NULL)
+                    goto jump;
+            }
+            while(Temp->Data <= NewNode->Data && Temp->Left != NULL) {
+                Temp = Temp->Left;
+                if(Temp->Right != NULL && Temp->Data >= NewNode->Data)
+                    goto jump2;
+                if(Temp->Left == NULL)
+                    goto jump;
+            }
+        }
+        jump: if(Temp->Data >= NewNode->Data)
+            Temp->Right = NewNode;
+
+        else
+            Temp->Left = NewNode;
+    }
+}
+
+
+void Insertnode(int Data) {
+    T *NewNode = (T*)malloc(sizeof(T));
+    NewNode->Data = Data;
+    NewNode->Left = NULL;
+    NewNode->Right = NULL;
+    T *Temp = Root1;
+    
+    if(Root1 == NULL)
+        Root1 = NewNode;
+    else
+    {
+        if(Temp->Left != NULL || Temp->Right != NULL)
+        {
+            jump2: while(Temp->Data >= NewNode->Data && Temp->Left != NULL)
+            {
+                Temp = Temp->Left;
+                if(Temp->Left == NULL)
+                    goto jump;
+            }
+            while(Temp->Data <= NewNode->Data && Temp->Right != NULL)
+            {
+                Temp = Temp->Right;
+                if(Temp->Left != NULL && Temp->Data >= NewNode->Data)
+                    goto jump2;
+                if(Temp->Right == NULL)
+                    goto jump;
+            }
+        }
+        jump: if(Temp->Data >= NewNode->Data)
+            Temp->Left = NewNode;
+        else
+            Temp->Right = NewNode;
+    }
+    cnt++;
+}
+
+typedef struct Tree1 T1;
+struct Tree1 {
+   struct Tree *Stk;
+   struct Tree1 *Next;
+};
+
+
+T1 *Head = NULL;
+
+
+void Push(T *Data) {
+    T1 *NewNode = (T1*) malloc(sizeof(T1));
+    NewNode->Stk = Data;
+    T1 *Temp = Head;
+    
+    if(Head == NULL) {
+        NewNode->Next = Head;
+        Head = NewNode;
+    } else {
+        while(Temp->Next != NULL)
+            Temp=Temp->Next;
+        Temp->Next=NewNode;
+        NewNode->Next = NULL;
+    }
+}
+
+
+T* Pop() {
+    if(Head == NULL)
+        printf("List is Empty...");
+    else {
+        T  *Copy;
+        T1 *Temp = Head;
+        T1 *Second = Head;
+        if(Temp->Next != NULL) {
+            Temp = Temp->Next;
+            while(Temp->Next != NULL) {
+                Second = Temp;
+                Temp = Temp->Next;
+            }
+            Copy = Temp->Stk;
+            free(Temp);
+            Second->Next = NULL;
+            return Copy;
+        } else {
+            Copy = Temp->Stk;
+            return Copy;
+        }
+    }
+}
+
+
+void MirrorTree() {
+    Root2 = NULL;
+    int c = 0;
+    c = cnt;
+    T *Temp = Root1;
+    if(c == 0) {
+        printf("Tree Empty...");
+        return;
+    }
+    
+    do {
+        while(Temp->Left != NULL) {
+            Mirror(Temp->Data);
+            c--;
+            Push(Temp);
+            Temp = Temp->Left;
+        }
+        Mirror(Temp->Data);
+        c--;
+        if(Temp->Right != NULL)
+            Temp = Temp->Right;
+        else {
+            while(c != 0) {
+                Temp = Pop();
+                if(Temp->Right != NULL) {
+                    Temp = Temp->Right;
+                    Mirror(Temp->Data);
+                    c--;
+                    break;
+                }
+            }
+        }
+    } while(c != 0);
+}
+
+
+void Inorder(int Treeno) {
+    if(Treeno == 1) {
+        int c = 0;
+        c = cnt;
+        T *Temp = Root1;
+        if(c == 0) {
+            printf("Tree Empty...");
+            return;
+        }
+        printf("\n\n");
+        do {
+            while(Temp->Left != NULL) {
+                Push(Temp);
+                Temp = Temp->Left;
+            }
+            printf(" %d ",Temp->Data);
+            c--;
+            
+            if(Temp->Right != NULL)
+                Temp = Temp->Right;
+            else {
+                while(c != 0) {
+                    Temp = Pop();
+                    printf(" %d ",Temp->Data);
+                    c--;
+                    if(Temp->Right != NULL) {
+                        Temp = Temp->Right;
+                        break;
+                    }
+                }
+            }
+        } while(c != 0);
+    }
+   
+   if(Treeno == 2) {
+        int c = 0;
+        c = cnt;
+        T *Temp = Root2;
+        
+        if(c == 0) {
+            printf("Tree Empty...");
+            return;
+        }
+        printf("\n\n");
+        do {
+            while(Temp->Left != NULL) {
+                Push(Temp);
+                Temp =Temp->Left;
+            }
+            printf(" %d ",Temp->Data);
+            c--;
+            if(Temp->Right != NULL)
+                Temp = Temp->Right;
+            else {
+                while(c != 0)  {
+                    Temp = Pop();
+                    printf(" %d ",Temp->Data);
+                    c--;
+                    if(Temp->Right != NULL) {
+                        Temp = Temp->Right;
+                        break;
+                    }
+                }
+            }
+        } while(c != 0);
+    }
+}
+
+
+void DeleteIterative(int Data) {
+    cnt--;
+    T* Curr = Root1;
+    T* Prev = Root1;
+    
+    while (Curr != NULL && Curr->Data != Data) {
+        Prev = Curr;
+        if (Data < Curr->Data)
+            Curr = Curr->Left;
+        else
+            Curr = Curr->Right;
+    }
+    
+    if (Curr == NULL) {
+        printf("Data %d Not Found in The Provided Tree.\n",Data);
+        return;
+    }
+    
+    if (Curr->Left == NULL || Curr->Right == NULL) {
+        T* NewCurr;
+        if (Curr->Left == NULL)
+            NewCurr = Curr->Right;
+        else
+            NewCurr = Curr->Left;
+        if (Curr == Prev->Left)
+            Prev->Left = NewCurr;
+        else
+            Prev->Right = NewCurr;
+        free(Curr);
+    } else {
+        T* Second = NULL;
+        T* Temp = Root1;
+        Temp = Curr->Right;
+        while (Temp->Left != NULL) {
+            Second = Temp;
+            Temp = Temp->Left;
+        }
+        if (Second != NULL)
+            Second->Left = Temp->Right;
+        else
+            Curr->Right = Temp->Right;
+        Curr->Data = Temp->Data;
+        free(Temp);
+    }
+}
+
+
+int main() {
+    int X = 0;
+    do {
+        printf("\n1. Add Node in Tree \n2. Delete Node \n3. Print Inorder Sequence of Given Tree\n4. Print Mirror Image of Given Tree\n5. Exit\n\nEnter Your Choice->");
+        scanf("%d",&X);
+        
+        switch(X) {
+        case 1:
+                int T = 0;
+                printf("\n\nEnter The Number to be Added : ");
+                scanf("%d",&T);
+                Insertnode(T);
+                break;
+        
+        case 2:
+                int T = 0;
+                printf("\n\nEnter The Number to be Deleted: ");
+                scanf("%d",&T);
+                DeleteIterative(T);
+                break;
+            
+        case 3:
+                printf("\n\nThe Given Tree is : ");
+                Inorder(1);
+                break;
+           
+        case 4:
+                printf("\n\nThe Mirror of Given Tree is : ");
+                MirrorTree();
+                Inorder(2);
+                break;
+            
+        case 5:
+                break;
+        }
+    } while(X != 5);
+    return 0;
+}
+
+
+--------------------------------------------------------------------------------
+OUTPUT:
+
+1. Add Node in Tree
+2. Delete Node
+3. Print Inorder Sequence of Given Tree
+4. Print Mirror Image of Given Tree
+5. Exit
+
+Enter Your Choice->1
+
+
+Enter The Number to be Added : 45
+
+1. Add Node in Tree
+2. Delete Node
+3. Print Inorder Sequence of Given Tree
+4. Print Mirror Image of Given Tree
+5. Exit
+
+Enter Your Choice->1
+
+
+Enter The Number to be Added : 56
+
+1. Add Node in Tree
+2. Delete Node
+3. Print Inorder Sequence of Given Tree
+4. Print Mirror Image of Given Tree
+5. Exit
+
+Enter Your Choice->1
+
+
+Enter The Number to be Added : 35
+
+1. Add Node in Tree
+2. Delete Node
+3. Print Inorder Sequence of Given Tree
+4. Print Mirror Image of Given Tree
+5. Exit
+
+Enter Your Choice->1
+
+
+Enter The Number to be Added : 23
+
+1. Add Node in Tree
+2. Delete Node
+3. Print Inorder Sequence of Given Tree
+4. Print Mirror Image of Given Tree
+5. Exit
+
+Enter Your Choice->3
+
+
+The Given Tree is :
+
+ 23  35  45  56
+1. Add Node in Tree
+2. Delete Node
+3. Print Inorder Sequence of Given Tree
+4. Print Mirror Image of Given Tree
+5. Exit
+
+Enter Your Choice->2
+
+
+Enter The Number to be Deleted: 45
+
+1. Add Node in Tree
+2. Delete Node
+3. Print Inorder Sequence of Given Tree
+4. Print Mirror Image of Given Tree
+5. Exit
+
+Enter Your Choice->3
+
+
+The Given Tree is :
+
+ 23  35  56
+1. Add Node in Tree
+2. Delete Node
+3. Print Inorder Sequence of Given Tree
+4. Print Mirror Image of Given Tree
+5. Exit
+
+Enter Your Choice->4
+
+
+The Mirror of Given Tree is :
+
+ 56  35  23
+1. Add Node in Tree
+2. Delete Node
+3. Print Inorder Sequence of Given Tree
+4. Print Mirror Image of Given Tree
+5. Exit
+
+Enter Your Choice->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
