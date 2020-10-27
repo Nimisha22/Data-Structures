@@ -1,0 +1,173 @@
+1.Insert
+2.Pre-order traversal
+3.Height of Tree
+
+--------------------------------------------------------
+
+#include <stdio.h>
+#include <stdlib.h>
+#include<malloc.h>
+#include<conio.h>
+
+struct node
+{
+    int data;
+    struct node *right;
+    struct node *left;
+};
+
+struct node *tree;
+struct node *create()
+{
+  struct node *ptr;
+  int val;
+  printf("\t\tEnter value(-1 for no data):");
+  scanf("%d",&val);
+
+  if(val==-1)
+        return NULL;
+  ptr=(struct node*)malloc(sizeof(struct node));
+  ptr->data=val;
+
+  printf("\t\tEnter left of %d:\n",val);
+  ptr->left=create();
+
+  printf("\t\tEnter right of %d:\n",val);
+  ptr->right=create();
+
+  return ptr;
+}
+void preorder(struct node*temp)
+ {
+     int top=0;
+ struct node *s[20],*pt=temp;
+  s[0]=NULL;
+ while(pt != NULL)
+ {
+  printf("%d\t",pt->data);
+  if(pt->right != NULL)
+   {
+    top++;
+    s[top] = pt->right;
+   }
+  if(pt->left != NULL)
+   pt = pt->left;
+  else
+   {
+    pt = s[top];
+    top--;
+   }
+ }
+}
+int height(struct node * root)
+{   int height=1;
+   struct node *ptr=root;
+	 while (ptr->left != NULL || ptr->right != NULL)
+    {
+        height++;
+        if (ptr->left == NULL)
+            ptr = ptr->right;
+        else
+            ptr = ptr->left;
+    }
+    return height;
+}
+int main()
+{
+   int option;
+   struct node *tree;
+   do
+   {
+        printf("\n\n************************MAIN MENU************************\n");
+        printf("1.Insert\n");
+        printf("2.Pre-order traversal\n");
+        printf("3.Height of Tree\n");
+        printf("4.Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d",&option);
+        switch(option)
+        {
+            case 1: tree=create();
+                    break;
+
+            case 2: preorder(tree);
+                    break;
+
+            case 3: printf("\t\tHeight of tree is: %d ",height(tree));
+                    break;
+
+            case 4:exit(0);
+        }
+
+   }while(option!=4);
+   return 0;
+}
+
+OUTPUT:
+
+************************MAIN MENU************************
+1.Insert
+2.Pre-order traversal
+3.Height of Tree
+4.Exit
+Enter your choice:
+1
+                Enter value(-1 for no data):30
+                Enter left of 30:
+                Enter value(-1 for no data):20
+                Enter left of 20:
+                Enter value(-1 for no data):60
+                Enter left of 60:
+                Enter value(-1 for no data):5
+                Enter left of 5:
+                Enter value(-1 for no data):-1
+                Enter right of 5:
+                Enter value(-1 for no data):-1
+                Enter right of 60:
+                Enter value(-1 for no data):15
+                Enter left of 15:
+                Enter value(-1 for no data):-1
+                Enter right of 15:
+                Enter value(-1 for no data):-1
+                Enter right of 20:
+                Enter value(-1 for no data):-1
+                Enter right of 30:
+                Enter value(-1 for no data):40
+                Enter left of 40:
+                Enter value(-1 for no data):35
+                Enter left of 35:
+                Enter value(-1 for no data):-1
+                Enter right of 35:
+                Enter value(-1 for no data):-1
+                Enter right of 40:
+                Enter value(-1 for no data):50
+                Enter left of 50:
+                Enter value(-1 for no data):-1
+                Enter right of 50:
+                Enter value(-1 for no data):-1
+
+
+************************MAIN MENU************************
+1.Insert
+2.Pre-order traversal
+3.Height of Tree
+4.Exit
+Enter your choice: 2
+30      20      60      5       15      40      35      50
+
+************************MAIN MENU************************
+1.Insert
+2.Pre-order traversal
+3.Height of Tree
+4.Exit
+Enter your choice: 3
+                Height of tree is: 4
+
+************************MAIN MENU************************
+1.Insert
+2.Pre-order traversal
+3.Height of Tree
+4.Exit
+Enter your choice:
+
+
