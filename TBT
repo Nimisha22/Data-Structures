@@ -1,0 +1,459 @@
+Problem Statement -
+Create inorder threaded binary tree and traverse it in inorder, 
+preoder and postorder using threads only.
+
+--------------------------------------------------------------
+Code -
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct node {
+    int data;
+    struct node *left, *right;
+    int lth, rth;
+} tree;
+
+typedef struct {
+    tree *data[10];
+    int size;
+} stack;
+typedef stack queue;
+typedef queue set;
+
+tree HEADER = {
+    .data = 1 << 31 - 1,
+    .left = &HEADER,
+    .right = &HEADER,
+    .lth = 1,
+    .rth = 1};
+
+
+void push(stack *s, tree *node) {
+    s->data[s->size] = node;
+    s->size++;
+}
+
+tree *pop(stack *s) {
+    s->size--;
+    tree *temp = s->data[s->size];
+    s->data[s->size] = NULL;
+    return temp;
+}
+
+tree *peek(stack *s) {
+    return s->data[s->size - 1];
+}
+
+void enqueue(queue *q, tree *node) {
+    q->data[q->size] = node;
+    q->size++;
+}
+
+tree *dequeue(queue *q) {
+    tree *temp = q->data[0];
+
+    for (int i = 0; i < q->size - 1; i++)
+        q->data[i] = q->data[i + 1];
+
+    q->data[q->size] = NULL;
+    q->size--;
+    return temp;
+}
+
+int contains(set *s, tree* node){
+    for(int i = s->size - 1; i > -1; i--)
+        if(node == s->data[i])
+            return 1;
+    return 0;
+}
+
+// this function returns a queue which contains nodes (EXCEPT leaf nodes) of tree levelwise
+queue *zip(tree *root) {
+    queue *temp = calloc(1, sizeof(queue));
+    temp->size = 0;
+
+    queue buffer = {.size = 0};
+    enqueue(&buffer, root);
+
+    do {
+        root = dequeue(&buffer);
+        // if both children are threads then continue
+        if (root->lth && root->rth)
+            continue;
+
+        enqueue(temp, root);
+        if (root->lth == 0)
+            enqueue(&buffer, root->left);
+        if (root->rth == 0)
+            enqueue(&buffer, root->right);
+
+    } while(buffer.size);
+
+    return temp;
+}
+
+tree *newnode(int value) {
+    tree *temp = malloc(sizeof(tree));
+
+    temp->data = value;
+    temp->left = &HEADER;
+    temp->right = &HEADER;
+    temp->lth = 1;
+    temp->rth = 1;
+
+    return temp;
+}
+
+tree *tree_min(tree *root) {
+    if (root == &HEADER)
+        return root;
+    while (!root->lth)
+        root = root->left;
+    return root;
+}
+
+tree *tree_max(tree *root) {
+    if (root == &HEADER)
+        return root;
+    while (!root->rth)
+        root = root->right;
+    return root;
+}
+
+// this function assigns proper predecessors and successors to nodes
+void booty_hunter(tree *root) {
+    queue *nodes = zip(root);
+
+    while (nodes->size) {
+        tree *current = dequeue(nodes);
+
+        if(current->lth == 1)
+            continue;
+        tree *left_max = tree_max(current->left);
+        left_max->right = current;
+        left_max->rth = 1;
+
+        if(current->rth == 1)
+            continue;
+        tree *right_min = tree_min(current->right);
+        right_min->left = current;
+        right_min->lth = 1;
+    }
+
+    free(nodes);
+}
+
+// this function inserts a new node into TBT
+void insert(tree **root, int value) {
+    if (root == NULL)
+        return;
+
+    if (*root == NULL) {
+        *root = newnode(value);
+        HEADER.left = *root;
+        HEADER.lth = 0;
+        return;
+    }
+
+    int lefts = 0, rights = 0;
+    tree *current = *root;
+
+    while (1) {
+        if (value < current->data)
+            if (current->lth == 0) {
+                current = current->left;
+                lefts++;
+            } else
+                break;
+
+        else if (value == current->data)
+            return;  // no duplicates allowed
+
+        else if (current->rth == 0) {
+            current = current->right;
+            rights++;
+        } else
+            break;
+    }
+
+    tree *child = newnode(value);
+
+    if (value < current->data) {
+        current->left = child;
+        current->lth = 0;
+        child->right = current;
+    } else {
+        current->right = child;
+        current->rth = 0;
+        child->left = current;
+    }
+
+    booty_hunter(*root);
+}
+
+void delete(tree **root, int value) {
+    if(root == NULL)
+        return;
+
+    if((*root)->data == value) {
+        tree* del = *root;
+        tree* t_min = tree_min(del->right);
+
+        t_min->left = del->left;
+        t_min->lth = del->lth;
+        *root = del->right;
+        free(del);
+        booty_hunter(*root);
+        return;
+    }
+
+    tree* current = *root;
+
+    // get parent of the node to be deleted
+    while(current->lth == 0 && current->rth == 0 && current->left->data != value && current->right->data != value){
+        if(value < current->data)
+            current = current->left;
+        else
+            current = current->right;
+    }
+
+    tree* child = NULL;
+
+    if(current->left->data == value){
+        child = current->left;
+
+        // if node to be deleed doesnt have children
+        if(child->lth == 1 && child->rth == 1){
+            current->left = &HEADER;
+            current->lth = 1;
+        }
+
+        // if not to be deleted has only left child
+        else if(child->lth == 0 && child->rth == 1)
+            current->left = current->left->left;
+
+        // if not to be deleted has only right child
+        else if(child->lth == 1 && child->rth == 0)
+            current->right = current->left->right;
+
+        // if not to be deleted has both children
+        else if(child->lth == 0 && child->rth == 0){
+            tree* t_min = tree_min(child->right);
+            t_min->left = child->left;
+        }
+    }
+
+    else {
+        child = current->right;
+
+        // if node to be deleted doesnt have children
+        if(child->lth == 1 && child->rth == 1){
+            current->right = &HEADER;
+            current->rth = 1;
+        }
+
+        // if not to be deleted has only left child
+        else if(child->lth == 0 && child->rth == 1)
+            current->right = current->right->left;
+
+        // if not to be deleted has only right child
+        else if(child->lth == 1 && child->rth == 0)
+            current->right = current->right->right;
+
+        // if not to be deleted has both children
+        else if(child->lth == 0 && child->rth == 0){
+            tree* t_min = tree_min(child->right);
+            t_min->left = child->left;
+        }
+    }
+
+    booty_hunter(*root);
+    free(child);
+}
+
+// pre order of TBT
+void pre_order(tree *root){
+    while (root != &HEADER) {
+        printf("%d ", root->data);
+
+        if(root->lth == 0)
+            root = root->left;
+        else if(root->rth == 0)
+            root = root->right;
+        else {
+            if(root->right == &HEADER)
+                break;
+
+            while(root->rth == 1 && root->right != &HEADER)
+                root = root->right;
+            if(root->right == &HEADER)
+                break;
+            root = root->right;
+        }
+    }
+}
+
+// in order traversal of TBT
+void in_order(tree *root) {
+    tree *current = tree_min(root);
+
+    while (current->right != &HEADER) {
+        printf("%d ", current->data);
+
+        if(current->rth == 1)
+            current = current->right;
+        else
+            current = tree_min(current->right);
+    }
+    printf("%d ", current->data);
+}
+
+// post order traversal of TBT
+void post_order(tree *root){
+    stack s = {.size = 0};
+    set st = {.size = 0};
+    tree* previous = root;
+    push(&s, root);
+
+    do {
+        if(root->lth == 0 && !contains(&st, root->left)){
+            push(&s, root);
+            root = root->left;
+            continue;
+        }
+        if(root->rth == 0 && !contains(&st, root->right)){
+            push(&s, root);
+            root = root->right;
+            continue;
+        }
+
+        push(&st, root);
+        printf("%d ", root->data);
+        previous = root;
+        root = pop(&s);
+    } while(s.size);
+}
+
+// this function displays tree levelwise
+void display_level(tree *root) {
+    queue q = {.size = 0};
+    enqueue(&q, root);
+    tree *current = NULL;
+    int nodes = 0;
+    int limiter = 1;
+
+    while (q.size) {
+        current = dequeue(&q);
+
+        if (nodes == limiter) {
+            printf("\n");
+            nodes = 0;
+            limiter <<= 1;
+        }
+
+        printf("%d ", current->data);
+        nodes++;
+
+        if (!current->lth)
+            enqueue(&q, current->left);
+        if (!current->rth)
+            enqueue(&q, current->right);
+    }
+}
+
+void menu(tree *root){
+    int choice, val;
+
+    for(int i = 0; i < 50; i++)
+        printf("-");
+    puts("\n1. Insert Value");
+    puts("2. Delete a node");
+    puts("3. Display Preorder");
+    puts("4. Display Inorder");
+    puts("5. Display PostOrder");
+    puts("6. Exit");
+    for(int i = 0; i < 50; i++)
+        printf("-");
+    printf("\n");
+
+    while(1){
+        printf("\nEnter your choice: ");
+        scanf("%d", &choice);
+
+        switch(choice){
+            case 1:
+                printf("Enter a value: ");
+                scanf("%d", &val);
+                insert(&root, val);
+                break;
+            case 2:
+                printf("Enter value to delete: ");
+                scanf("%d", &val);
+                delete(&root, val);
+                break;
+            case 3:
+                pre_order(root);
+                break;
+            case 4:
+                in_order(root);
+                break;
+            case 5:
+                post_order(root);
+                break;
+            case 6:
+                puts("Exiting...");
+                exit(0);
+                break;
+            default:
+                puts("Enter a appropriate value! ");
+        }
+    }
+}
+
+int main() {
+    tree *root = NULL;
+    menu(root);
+    return 0;
+}
+
+-------------------------------------------
+Output -
+
+--------------------------------------------------
+1. Insert Value
+2. Delete a node
+3. Display Preorder
+4. Display Inorder
+5. Display PostOrder
+6. Exit
+--------------------------------------------------
+
+Enter your choice: 1
+Enter a value: 20
+
+Enter your choice: 1
+Enter a value: 10
+
+Enter your choice: 1
+Enter a value: 30
+
+Enter your choice: 1
+Enter a value: 15
+
+Enter your choice: 3
+20 10 15 30
+Enter your choice: 4
+10 15 20 30
+Enter your choice: 5
+15 10 30 20
+Enter your choice: 2
+Enter value to delete: 15
+
+Enter your choice: 3
+20 10 30
+Enter your choice: 6
+Exiting...
+
+Process returned 0 (0x0)   execution time : 204.498 s
+Press any key to continue.
