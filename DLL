@@ -1,0 +1,256 @@
+Question: WAP to implement doubly linked list to and perform operations on it
+1. Insert (all cases)
+2. Delete (all cases)
+
+---------------------------------------------------------------------
+Code:
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct node {
+    int data;
+    struct node *next, *prev;
+} node;
+
+typedef struct {
+    node *head, *tail;
+    int size;
+} linkedlist;
+
+void menu();
+
+node *newnode(int value) {
+    node *temp = malloc(sizeof(node));
+    temp->data = value;
+    temp->next = NULL;
+    temp->prev = NULL;
+    return temp;
+}
+
+linkedlist *constructor() {
+    linkedlist *list = malloc(sizeof(linkedlist));
+    list->head = NULL;
+    list->tail = NULL;
+    list->size = 0;
+    return list;
+}
+
+// this function adds new node at tail (or end) of list
+void append(linkedlist *list, int value) {
+    if (list->head == NULL) {
+        list->head = newnode(value);
+        list->tail = list->head;
+        return;
+    }
+
+    node *temp = newnode(value);
+
+    // appropriate wiring
+    temp->prev = list->tail;
+    list->tail->next = temp;
+
+    list->tail = temp;
+    list->size++;
+}
+
+// this function inserts new node at desired index
+void insert(linkedlist *list, int index, int value) {
+    if (index > list->size) {
+        append(list, value);
+        return;
+    }
+
+    if (index < 0) {
+        printf("Provide a proper index!\n");
+        return;
+    }
+
+    if(index == 0){
+        node *temp = newnode(value);
+        temp->next = list->head;
+        list->head->prev = temp;
+        list->head = temp;
+        return;
+    }
+
+    node *current = list->head;
+    for (int i = 0; i < index - 1; i++)
+        current = current->next;
+
+    node *temp = newnode(value);
+
+    // appropriate wiring
+    temp->next = current->next;
+    temp->prev = current;
+    temp->next->prev = temp;
+
+    current->next = temp;
+
+    list->size++;
+}
+
+// this function deletes node at provided index
+void del(linkedlist *list, int index) {
+    if (index < 0 || index > list->size)
+        return;
+
+    if (index == 0) {
+        list->head = list->head->next;
+        free(list->head->prev);
+        list->head->prev = NULL;
+        list->size--;
+        return;
+    }
+
+    if (index == list->size) {
+        list->tail = list->tail->prev;
+        free(list->tail->next);
+        list->tail->next = NULL;
+        list->size--;
+        return;
+    }
+
+    node *current = list->head;
+    for (int i = 0; i < index - 1; i++)
+        current = current->next;
+
+    node *temp = current->next;
+
+    current->next = temp->next;
+    temp->next->prev = current;
+
+    free(temp);
+    list->size--;
+}
+
+// this function deletes node whose data is value
+void kill(linkedlist *list, int value){
+    int index = 0;
+    node *current = list->head;
+    while(current != NULL && current->data != value){
+        current = current->next;
+        index++;
+    }
+
+    if (index < list->size)
+        del(list, index);
+}
+
+void display(linkedlist *list){
+    if(list == NULL || list->head == NULL){
+        printf("List is empty\n");
+        return;
+    }
+
+    node *current = list->head;
+
+    while(current != NULL){
+        printf("%d <-> ", current->data);
+        current = current->next;
+    }
+    printf("NULL\n");
+}
+
+void main() {
+    linkedlist *list = constructor();
+    int choice, val, ind;
+
+    menu();
+    while (1) {
+        printf("\nEnter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter the number: ");
+                scanf("%d", &val);
+                printf("Enter the index: ");
+                scanf("%d", &ind);
+                insert(list, ind, val);
+                break;
+
+            case 2:
+                printf("Enter the number: ");
+                scanf("%d", &val);
+                append(list, val);
+                break;
+
+            case 3:
+                printf("Enter value to be removed: ");
+                scanf("%d", &val);
+                kill(list, val);
+                break;
+
+            case 4:
+                printf("Enter index: ");
+                scanf("%d", &ind);
+                del(list, ind);
+                break;
+
+            case 5:
+                display(list);
+                break;
+
+            case 6:
+                return;
+
+            default:
+                printf("\nEnter a valid number!");
+                menu();
+                break;
+        }
+    }
+}
+
+void menu() {
+    for (int i = 0; i < 100; i++)
+        printf("-");
+
+    printf("\n1. Insert element\n2. Append value to list\n3. Remove element from index\n4.Remove node at index\n5. Display elements of list\n6. Exit\n");
+
+    for (int i = 0; i < 100; i++)
+        printf("-");
+}
+
+
+Output is
+
+----------------------------------------------------------------------------------------------------
+1. Insert element
+2. Append value to list
+3. Remove a value
+4. Remove node at index
+5. Display elements of list
+6. Exit
+----------------------------------------------------------------------------------------------------
+Enter your choice: 2
+Enter the number: 0
+
+Enter your choice: 1
+Enter the number: 20
+Enter the index: 1
+
+Enter your choice: 5
+0 <-> 20 <-> NULL
+
+Enter your choice: 1
+Enter the number: 45
+Enter the index: 1
+
+Enter your choice: 5
+0 <-> 45 <-> 20 <-> NULL
+
+Enter your choice: 3
+Enter Value: 45
+
+Enter your choice: 5
+0 <-> 20 <-> NULL
+
+Enter your choice: 4
+Enter index: 1
+
+Enter your choice: 5
+0 <-> NULL
+
+Enter your choice: 6
