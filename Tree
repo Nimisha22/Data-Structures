@@ -1,0 +1,597 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct node {
+    int data;
+    struct node *left, *right;
+} tree;
+
+typedef struct {
+    tree *data[50];
+    int size;
+} stack;
+typedef stack queue; // the above struct can be used as stack as well as queue
+
+void menu();
+
+tree* newnode(int value) {
+    tree *node = malloc(sizeof(tree));
+    node->data = value;
+    node->left = NULL;
+    node->right = NULL;
+
+    return node;
+}
+
+void push(stack *s, tree *n){
+    s->data[s->size] = n;
+    s->size++;
+}
+
+tree* pop(stack *s){
+    tree *ret = s->data[s->size - 1];
+    s->size--;
+    s->data[s->size] = NULL;
+    return ret;
+}
+
+tree* peek(stack *s){
+    return s->data[s->size - 1];
+}
+
+void enqueue(queue *q, tree *n){
+    q->data[q->size] = n;
+    q->size++;
+}
+
+tree* dequeue(queue *q){
+    tree *ret = q->data[0];
+
+    for (int i = 0; i < q->size - 1; i++)
+        q->data[i] = q->data[i + 1];
+    q->size--;
+    q->data[q->size] = NULL;
+    
+    return ret;
+}
+
+int contains(stack *s, tree* node){
+    for(int i = s->size - 1; i >= 0; i--)
+        if(s->data[i]->data == node->data) return 1;
+
+    return 0;
+}
+
+// this function returns minimum valued node from root
+tree* tree_min(tree *root){
+    if(!root) return NULL;
+
+    while(root->left) root = root->left;
+    return root;
+}
+
+int height(tree *root){
+    int max_height = 0;
+    int height = 0;
+
+    stack s = {.size = 0};
+    push(&s, root);
+    queue visited = {.size = 0};
+    enqueue(&visited, root);
+
+    do {
+        if(root->left != NULL && !contains(&visited, root->left)){
+            push(&s, root);
+            enqueue(&visited, root->left);
+            root = root->left;
+            height++;
+            continue;
+        }
+
+        if(root->right != NULL && !contains(&visited, root->right)){
+            push(&s, root);
+            enqueue(&visited, root->right);
+            root = root->right;
+            height++;
+            continue;
+        }
+
+        root = pop(&s);
+        if(height > max_height)
+            max_height = height;
+        // if(root == NULL)
+            height--;
+        
+    } while(s.size);
+
+    return max_height;
+}
+
+// this function inserts a value into a BST tree
+void insert(tree **root, int value) {
+    if(root == NULL) return;
+
+    if (*root == NULL) {
+        *root = newnode(value);
+        return;
+    }
+
+    tree *current = *root;
+
+    while (current != NULL) {
+        if (value <= current->data) {
+            if (current->left == NULL) {
+                current->left = newnode(value);
+                return;
+            } else
+                current = current->left;
+        }
+
+        else if (current->right == NULL) {
+            current->right = newnode(value);
+            return;
+        } else
+            current = current->right;
+        
+    }
+}
+
+// this function deletes the given node from tree
+void delete(tree **root, int value){
+    if(*root == NULL) return;
+
+    if((*root)->data == value){
+        // find minimum on right subtree and attach root->left with that node
+        tree *min_ = tree_min((*root)->right);
+        min_->left = (*root)->left;
+        tree *temp = *root;
+        *root = (*root)->right;
+
+        free(temp);
+        return;
+    }
+
+    tree *current = *root;
+    // get parent of the node to be deleted
+    while(current->left && current->right && current->left->data != value && current->right->data != value){
+        if(value < current->data) current = current->left;
+        else current = current->right;
+    }
+
+    // if the value doesnt exist
+    if(!current) return;
+
+    tree *child = NULL;
+    // if we have to delete right child
+    if(current->right != NULL && current->right->data == value){
+        child = current->right;
+
+        // if it doesnt have any children
+        if(!(child->left || child->right)){
+            current->right = NULL;
+            free(child);
+        }
+
+        // if it has only left child
+        else if(child->left && !child->right){
+            current->right = child->left;
+            free(child);
+        }
+
+        // if it has only right child
+        else if(!child->left && child->right){
+            current->right = child->right;
+            free(child);
+        }
+
+        // if it has both children
+        else {
+            // find min on right subtree
+            tree *min_ = tree_min(child->right);
+            min_->left = child->left;
+            current->right = child->right;
+            free(child);
+        }
+        return;
+    }
+
+    // if we have to delete right child
+    else if(current->left != NULL && current->left->data == value){
+        child = current->left;
+
+        // if it doesnt have any children
+        if(!(child->left || child->right)){
+            current->left = NULL;
+            free(child);
+        }
+
+        // if it has only left child
+        else if(child->left && !child->right){
+            current->left = child->left;
+            free(child);
+        }
+
+        // if it has only right child
+        else if(!child->left && child->right){
+            current->left = child->right;
+            free(child);
+        }
+
+        // if it has both children
+        else {
+            // find min on right subtree
+            tree *min_ = tree_min(child->right);
+            min_->left = child->left;
+            current->left = child->right;
+            free(child);
+        }
+        return;
+    }
+}
+
+// this function returns a clone of tree
+tree* clone(tree *root){
+    if(root == NULL) return NULL;
+    // recursive solution
+    // tree* ret = newnode(root->data);
+    // ret->left = clone(root->left);
+    // ret->right = clone(root->right);
+    // return ret;
+
+    tree *ret = newnode(root->data);
+    tree *current = ret;
+
+    stack s1 = {.size = 0};
+    push(&s1, ret);
+    // push(&s1, ret);
+    stack s2 = {.size = 0};
+    push(&s2, root);
+    // push(&s2, root);
+
+    stack visited = {.size = 0};
+    // push(&visited, root);
+
+    do {
+        // current = peek(&s1);
+        // root = peek(&s2);
+
+        if(root->left != NULL && !contains(&visited, root->left)){
+            current->left = newnode(root->left->data);
+            push(&visited, current->left);
+            push(&s1, current->left);
+            push(&s2, root->left);
+        }
+
+        if(root->right != NULL && !contains(&visited, root->right)){
+            current->right = newnode(root->right->data);
+            push(&visited, current->right);
+            push(&s1, current->right);
+            push(&s2, root->right);
+        }
+
+        current = pop(&s1);
+        root = pop(&s2);
+        
+    } while(s1.size != 0);
+
+    return ret;
+}
+
+// this function removes entire tree from memory
+void uproot(tree *root){
+    stack s = {.size = 0};
+    push(&s, root);
+
+    do {
+        root = peek(&s);
+
+        if(root->left != NULL){
+            push(&s, root->left);
+            continue;
+        }
+
+        if(root->right != NULL){
+            push(&s, root->right);
+            continue;
+        }
+
+        root = pop(&s);
+        free(root);
+
+    } while(s.size);
+}
+
+int equal_node(tree *node1, tree* node2){
+    return (node1 == node2) || (node1->data == node2->data);
+}
+
+int equal(tree *t1, tree* t2){
+
+    stack s1 = {.size = 0};
+    push(&s1, t1);
+    stack s2 = {.size = 0};
+    push(&s2, t2);
+
+    do {
+        t1 = pop(&s1);
+        t2 = pop(&s2);
+
+        if(equal_node(t1, t2) == 0)
+            return 0;
+        
+        if(t1->left != NULL && t2->left == NULL)
+            return 0;
+        if(t1->left == NULL && t2->left != NULL)
+            return 0;
+
+        if(t1->left != NULL && t2->left != NULL){
+            push(&s1, t1->left);
+            push(&s2, t2->left);
+            // continue;
+        }
+
+        if(t1->right != NULL && t2->right == NULL)
+            return 0;
+        if(t1->right == NULL && t2->right != NULL)
+            return 0;
+
+        if(t1->right != NULL && t2->right != NULL){
+            push(&s1, t1->right);
+            push(&s2, t2->right);
+            // continue;
+        }
+
+        // return equal(t1->left, t2->left) && equal(t1->right, t2->right);
+
+    } while(s1.size != 0);
+
+    return 1;
+}
+
+// this function modifies a tree into its mirror image
+void invert(tree *root){
+    queue nodes = {.size = 0};
+    enqueue(&nodes, root);
+    tree *current = NULL;
+    tree *temp = NULL;
+
+    while(nodes.size != 0) {
+        current = dequeue(&nodes);
+
+        temp = current->left;
+        current->left = current->right;
+        current->right = temp;
+
+        if(current->left != NULL)
+            enqueue(&nodes, current->left);
+        if(current->right != NULL)
+            enqueue(&nodes, current->right);
+    }
+}
+
+// this function returns mirror image of tree
+// difference between this function and above function is that
+// above mutatues original tree while this function makes a new tree
+tree* mirror(tree *root){
+    tree *ret = newnode(root->data);
+    tree *current = ret;
+
+    queue q = {.size = 0};
+    enqueue(&q, root);
+    queue track = {.size = 0};
+    enqueue(&track, current);
+
+    do {
+        current = dequeue(&track);
+        root = dequeue(&q);
+
+        if(current == NULL) continue;
+
+        if(root->left  != NULL) {
+            current->right = newnode(root->left->data);
+            enqueue(&q, root->left);
+            enqueue(&track, current->right);
+        }
+        if(root->right != NULL) {
+            current->left = newnode(root->right->data);
+            enqueue(&q, root->right);
+            enqueue(&track, current->left);
+        }
+
+    } while(q.size);
+
+    return ret;
+}
+
+// use preorder traversal (DLR)
+void pre_display(tree *root){
+    if(root == NULL){
+        printf("Tree is empty");
+        return;
+    }
+
+    stack nodes = {.size = 0};
+    tree *current = root;
+    push(&nodes, root);
+
+    do {
+        while(current){
+            printf("%d ", current->data);
+            push(&nodes, current);
+            current = current->left;
+        }
+        current = pop(&nodes)->right;
+
+    } while(nodes.size);
+}
+
+// use in order traversal (LDR)
+void in_display(tree *root){
+    if(root == NULL){
+        printf("Tree is empty");
+        return;
+    }
+
+    stack nodes = {.size = 0};
+    tree *current = root;
+    tree *prev = root;
+
+    do {
+        while(current){
+            push(&nodes, current);
+            current = current->left;
+        }
+        
+        current = pop(&nodes);
+        printf("%d ", current->data);
+        
+        if(current->right && current->right == prev){
+            prev = current;
+            continue;
+        }
+        prev = current;
+        current = current->right;
+
+    } while(nodes.size || current);
+}
+
+// use post order traversal (LRD)
+void post_display(tree *root) {
+    if (root == NULL) {
+        printf("Root is empty");
+        return;
+    }
+
+    stack nodes = {.size = 0};
+    tree *current = root;
+    tree *prev = NULL;
+
+    do {
+        while(current){
+            push(&nodes, current);
+            current = current->left;
+        }
+        current = peek(&nodes);
+        
+        // if right exists and we have not yet touched/processed right then process right side
+        if(current->right && prev != current->right) { 
+            current = current->right;
+        }
+        else {
+            printf("%d ", current->data);
+            current = NULL;
+            prev = pop(&nodes);
+        }
+    } while(nodes.size > 0);
+}
+
+// display nodes of tree level wise
+void display_levelwise(tree *root) {
+    if(root == NULL) {
+        printf("Tree is empty.");
+        return;
+    }
+
+    queue q = {.size = 0};
+    tree *current = NULL;
+    enqueue(&q, root);
+    int nodes = 0;      // count of how many nodes printed
+    int limiter = 1;    // used to print newline
+
+    while(q.size) {
+        current = dequeue(&q);
+
+        if(nodes == limiter){
+            printf("\n");
+            nodes = 0;          // reset nodes
+            limiter <<= 1;      // since every level has atmost twice the nodes as previous level, double the limiter
+        }
+
+        nodes++;
+        if(!current) continue;
+
+        printf("%d ", current->data);
+
+        enqueue(&q, current->left);
+        enqueue(&q, current->right);
+    }
+}
+
+// display all leaf nodes of tree
+void display_leaves(tree *root){
+    if(root == NULL){
+        printf("Root is null");
+        return;
+    }
+
+    queue nodes = {.size = 0};
+    enqueue(&nodes, root);
+    tree *current;
+
+    while(nodes.size){
+        current = dequeue(&nodes);
+        // if it does not have children then print it
+        if(!(current->left || current->right)) printf("%d ", current->data);
+
+        if(current->left)  enqueue(&nodes, current->left);
+        if(current->right) enqueue(&nodes, current->right);
+    }
+}
+
+void start(tree *root) {
+    int choice, val;
+    repeat:
+    printf("\nEnter your choice: ");
+    scanf("%d", &choice);
+    switch(choice){
+        case 1: 
+            printf("Enter a number: ");
+            scanf("%d", &val);
+            insert(&root, val);
+            break;
+        case 2:
+            printf("Enter value to be deleted: ");
+            scanf("%d", &val);
+            delete(&root, val);
+            break;
+        case 3:
+            post_display(root);
+            break;
+        case 4:
+            display_levelwise(root);
+            break;
+        case 5:
+            display_leaves(root);
+            break;
+        case 6: exit(0);
+        
+        default:
+            printf("Enter a valid choice!");
+            menu();
+    }
+    // i know we are not supposed to use goto but this case it looks neat so it should be fine
+    goto repeat;
+}
+
+void main() {
+    tree *root = NULL;
+
+    //insert(&root, 50);
+    //insert(&root, 25);
+    // insert(&root, 0);
+    //insert(&root, 75);
+    // insert(&root, 100);
+    // insert(&root, 35);
+
+    menu();
+    start(root);
+}
+
+void menu() {
+    for(int i = 0; i < 50; i++)
+        printf("-");
+    printf("\n1. Insert a node\n2. Delete a node\n3. Display the tree in postorder\n4. Display the tree levelwise\n5. Display leaf nodes\n6. Exit\n");
+    for(int i = 0; i < 50; i++)
+        printf("-");
+    printf("\n");
+}
