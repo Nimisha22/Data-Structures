@@ -1,0 +1,318 @@
+#include <stdio.h>
+#include <malloc.h>
+#include <stdlib.h>
+#include <string.h>
+
+int coeff1[10];
+int coeff2[10];
+int degree1[10];
+int degree2[10];
+
+struct gllnode
+{
+    int tag;
+    int exp;
+    struct gllnode *next;
+    union
+    {
+        struct gllnode *dlink;
+        int coeff;
+    }s;
+};
+
+struct gllnode *insert1(struct gllnode *first, int var, int t, int i, int j)
+{
+    struct gllnode *temp;
+    if(coeff1[i] != NULL)
+    {
+        temp = (struct gllnode *)malloc(sizeof(struct gllnode));
+        if(t == 1)
+        {
+            temp->tag = 1;
+            temp->exp = degree1[j];
+            j++;
+            temp->s.dlink = insert1(first, var, t+1, i, j);
+            printf("\nDownlink created. ");
+            j++;
+            i++;
+            temp->next = insert1(first, var, 1, i, j);
+            printf("\nSidelink created. ");
+        }
+        else if(t<var)
+        {
+            temp->tag = 1;
+            temp->exp = degree1[j];
+            temp->next = NULL;
+            j++;
+            temp->s.dlink = insert1(first, var, t+1, i, j);
+            printf("\nDownlink created.");
+        }
+        else if(t == var)
+        {
+            temp->tag = 0;
+            temp->next = NULL;
+            temp->exp = degree1[j];
+            temp->s.coeff = coeff1[i];
+        }
+        return(temp);
+    }
+    else
+        return(NULL);
+}
+
+struct gllnode *insert2(struct gllnode *first, int var, int t, int i, int j)
+{
+    struct gllnode *temp;
+    if(coeff2[i] != NULL)
+    {
+        temp = (struct gllnode *)malloc(sizeof(struct gllnode));
+        if(t == 1)
+        {
+            temp->tag = 1;
+            temp->exp = degree2[j];
+            j++;
+            temp->s.dlink = insert2(first, var, t+1, i, j);
+            printf("\nDownlink created. ");
+            j++;
+            i++;
+            temp->next = insert2(first, var, 1, i, j);
+            printf("\nSidelink created. ");
+        }
+        else if(t<var)
+        {
+            temp->tag = 1;
+            temp->exp = degree2[j];
+            temp->next = NULL;
+            j++;
+            temp->s.dlink = insert2(first, var, t+1, i, j);
+            printf("\nDownlink created.");
+        }
+        else if(t == var)
+        {
+            temp->tag = 0;
+            temp->next = NULL;
+            temp->exp = degree2[j];
+            temp->s.coeff = coeff2[i];
+        }
+        return(temp);
+    }
+    else
+        return(NULL);
+}
+
+
+int equal(struct gllnode *T1, struct gllnode *T2)
+{
+    int ans=0;
+    if(T1!=NULL && T2!=NULL)
+    {
+        if(T1->tag == T2->tag)
+        {
+            if(T1->tag == 0)
+            {
+                if(T1->s.coeff == T2->s.coeff && T1->exp == T2->exp)
+                    ans = equal(T1->next, T2->next);
+            }
+            else
+            {
+                ans = equal(T1->s.dlink, T2->s.dlink);
+            }
+            if(ans)
+                ans = equal(T1->next, T2->next);
+        }
+    }
+    else if(T1==NULL && T2==NULL)
+        ans = 1;
+    return ans;
+}
+
+
+int main()
+{
+    struct gllnode *first1;
+    first1 = (struct gllnode *)malloc(sizeof(struct gllnode));
+    first1->tag = 1;
+    first1->next = NULL;
+    first1->s.dlink = NULL;
+    struct gllnode *first2;
+    first2 = (struct gllnode *)malloc(sizeof(struct gllnode));
+    first2->tag = 1;
+    first2->next = NULL;
+    first2->s.dlink = NULL;
+    int terms1, terms2, var1, var2, k1=0, k2=0, l1=1, l2=1, m1=0, m2=0, t1=1, t2=1, result;
+    printf("\nEnter the number of variables in the first polynomial: ");
+    scanf("%d", &var1);
+    printf("\nEnter the number of terms of the first polynomial: ");
+    scanf("%d", &terms1);
+    for(int i1=terms1; i1>0; i1--)
+    {
+        printf("\nEnter the coefficient of the %d term: ", l1);
+        scanf("%d", &coeff1[m1]);
+        for(int j1=var1; j1>0; j1--)
+        {
+            printf("\nEnter the degree of the %d variable: ", j1);
+            scanf("%d", &degree1[k1]);
+            k1++;
+        }
+        l1++;
+        m1++;
+    }
+    first1->s.dlink = insert1(first1, var1, t1, 0, 0);
+
+    printf("\nEnter the number of variables in the second polynomial: ");
+    scanf("%d", &var2);
+    printf("\nEnter the number of terms of the second polynomial: ");
+    scanf("%d", &terms2);
+    for(int i2=terms2; i2>0; i2--)
+    {
+        printf("\nEnter the coefficient of the %d term: ", l2);
+        scanf("%d", &coeff2[m2]);
+        for(int j2=var2; j2>0; j2--)
+        {
+            printf("\nEnter the degree of the %d variable: ", j2);
+            scanf("%d", &degree2[k2]);
+            k2++;
+        }
+        l2++;
+        m2++;
+    }
+    first2->s.dlink = insert2(first2, var2, t2, 0, 0);
+
+    result = equal(first1, first2);
+    if(result == 1)
+        printf("\n\nPolynomials are equal. ");
+    else
+        printf("\n\nPolynomials are not equal. ");
+}
+
+
+/*struct gllnode *insert(struct gllnode *first, int coeff[], int n1, int degree[], int n2, int var, int t, int i, int j)
+{
+    struct gllnode *temp;
+    if(i>=n1)
+        return NULL;
+    else
+    {
+    if(coeff[i] != NULL)
+    {
+        temp = (struct gllnode *)malloc(sizeof(struct gllnode));
+        if(t == 1)
+        {
+            temp->tag = 1;
+            temp->exp = degree[j];
+            j++;
+            temp->s.dlink = insert(first, coeff, n1, degree, n2, var, t+1, i, j+1);
+            printf("\nDownlink created. ");
+            j++;
+            i++;
+            temp->next = insert(first, coeff, n1, degree, n2, var, 1, i+1, j+1);
+            printf("\nSidelink created. ");
+        }
+        else if(t<var)
+        {
+            temp->tag = 1;
+            temp->exp = degree[j];
+            temp->next = NULL;
+            j++;
+            temp->s.dlink = insert(first, coeff, n1, degree, n2, var, t+1, i, j+1);
+            printf("\nDownlink created.");
+        }
+        else if(t == var)
+        {
+            temp->tag = 0;
+            temp->next = NULL;
+            temp->exp = degree[j];
+            temp->s.coeff = coeff[i];
+        }
+        return(temp);
+    }
+    else
+        return(NULL);
+    }
+}
+
+
+int equal(struct gllnode *T1, struct gllnode *T2)
+{
+    int ans=0;
+    if(T1!=NULL && T2!=NULL)
+    {
+        if(T1->tag == T2->tag)
+        {
+            if(T1->tag == 0)
+            {
+                if(T1->s.coeff == T2->s.coeff)
+                    ans = equal(T1->next, T2->next);
+            }
+            else
+            {
+                ans = equal(T1->s.dlink, T2->s.dlink);
+            }
+            if(ans)
+                ans = equal(T1->next, T2->next);
+        }
+    }
+    else if(T1==NULL && T2==NULL)
+        ans = 1;
+    return ans;
+}
+
+
+int main()
+{
+    int coeff1[100], coeff2[100], degree1[100], degree2[100];
+    struct gllnode *first1;
+    first1 = (struct gllnode *)malloc(sizeof(struct gllnode));
+    first1->tag = 1;
+    first1->next = NULL;
+    first1->s.dlink = NULL;
+    struct gllnode *first2;
+    first2 = (struct gllnode *)malloc(sizeof(struct gllnode));
+    first2->tag = 1;
+    first2->next = NULL;
+    first2->s.dlink = NULL;
+    int terms1, terms2, var1, var2, k1=0, k2=0, l1=1, l2=1, m1=0, m2=0, t1=1, t2=1, result;
+    printf("\nEnter the number of variables in the first polynomial: ");
+    scanf("%d", &var1);
+    printf("\nEnter the number of terms of the first polynomial: ");
+    scanf("%d", &terms1);
+    for(int i1=terms1; i1>0; i1--)
+    {
+        printf("\nEnter the coefficient of the %d term: ", l1);
+        scanf("%d", &coeff1[m1]);
+        for(int j1=var1; j1>0; j1--)
+        {
+            printf("\nEnter the degree of the %d variable: ", j1);
+            scanf("%d", &degree1[k1]);
+            k1++;
+        }
+        l1++;
+        m1++;
+    }
+    first1->s.dlink = insert1(first1, coeff1, m1, degree1, k1, var1, t1, 0, 0);
+
+    printf("\nEnter the number of variables in the second polynomial: ");
+    scanf("%d", &var2);
+    printf("\nEnter the number of terms of the second polynomial: ");
+    scanf("%d", &terms2);
+    for(int i2=terms2; i2>0; i2--)
+    {
+        printf("\nEnter the coefficient of the %d term: ", l2);
+        scanf("%d", &coeff2[m2]);
+        for(int j2=var2; j2>0; j2--)
+        {
+            printf("\nEnter the degree of the %d variable: ", j2);
+            scanf("%d", &degree2[k2]);
+            k2++;
+        }
+        l2++;
+        m2++;
+    }
+    first2->s.dlink = insert2(first2, coeff2, m2, degree2, k2, var2, t2, 0, 0);
+
+    result = equal(first1, first2);
+    if(result == 1)
+        printf("\n\nPolynomials are equal. ");
+    else
+        printf("\n\nPolynomials are not equal. ");
+}*/
