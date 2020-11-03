@@ -9,16 +9,15 @@
 #include<malloc.h>
 #include<conio.h>
 
-struct node
-{
+struct node {
     int data;
     struct node *right;
     struct node *left;
 };
-
 struct node *tree;
-struct node *create()
-{
+
+
+struct node *create() {
   struct node *ptr;
   int val;
   printf("\t\tEnter value(-1 for no data):");
@@ -26,44 +25,44 @@ struct node *create()
 
   if(val==-1)
         return NULL;
-  ptr=(struct node*)malloc(sizeof(struct node));
-  ptr->data=val;
+  ptr = (struct node*)malloc(sizeof(struct node));
+  ptr->data = val;
 
   printf("\t\tEnter left of %d:\n",val);
-  ptr->left=create();
+  ptr->left = create();
 
   printf("\t\tEnter right of %d:\n",val);
-  ptr->right=create();
+  ptr->right = create();
 
   return ptr;
 }
-void preorder(struct node*temp)
- {
-     int top=0;
- struct node *s[20],*pt=temp;
-  s[0]=NULL;
- while(pt != NULL)
- {
-  printf("%d\t",pt->data);
-  if(pt->right != NULL)
-   {
+
+
+void preorder(struct node*temp) {
+ int top=0;
+ struct node *s[20], *pt = temp;
+ s[0] = NULL;
+ 
+ while(pt != NULL) {
+   printf("%d\t", pt->data);
+   if(pt->right != NULL) {
     top++;
     s[top] = pt->right;
    }
-  if(pt->left != NULL)
-   pt = pt->left;
-  else
-   {
+   if(pt->left != NULL)
+      pt = pt->left;
+  else {
     pt = s[top];
     top--;
    }
  }
 }
-int height(struct node * root)
-{   int height=1;
-   struct node *ptr=root;
-	 while (ptr->left != NULL || ptr->right != NULL)
-    {
+
+
+int height(struct node * root) {  
+   int height = 1;
+   struct node *ptr = root;
+   while (ptr->left != NULL || ptr->right != NULL) {
         height++;
         if (ptr->left == NULL)
             ptr = ptr->right;
@@ -72,12 +71,12 @@ int height(struct node * root)
     }
     return height;
 }
-int main()
-{
+
+
+int main() {
    int option;
    struct node *tree;
-   do
-   {
+   do {
         printf("\n\n************************MAIN MENU************************\n");
         printf("1.Insert\n");
         printf("2.Pre-order traversal\n");
@@ -85,24 +84,26 @@ int main()
         printf("4.Exit\n");
         printf("Enter your choice: ");
         scanf("%d",&option);
-        switch(option)
-        {
-            case 1: tree=create();
+        
+	switch(option) {
+            case 1: tree = create();
                     break;
 
             case 2: preorder(tree);
                     break;
 
-            case 3: printf("\t\tHeight of tree is: %d ",height(tree));
+            case 3: printf("\t\tHeight of tree is: %d ", height(tree));
                     break;
 
             case 4:exit(0);
         }
 
-   }while(option!=4);
+   } while(option != 4);
    return 0;
 }
 
+
+-------------------------------------------------------------------------------------------------------
 OUTPUT:
 
 ************************MAIN MENU************************
