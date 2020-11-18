@@ -1,0 +1,255 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// this crap caused so much trouble
+#undef max
+
+typedef struct node {
+    int data;
+    struct node *left, *right;
+    int balance;
+} tree;
+
+typedef struct {
+    tree* data[20];
+    int size;
+} stack;
+typedef stack queue;
+
+void push(stack *s, tree* node){
+    s->data[s->size] = node;
+    s->size++;
+}
+
+tree* pop(stack *s){
+    return s->data[--s->size];
+}
+
+void enqueue(queue *q, tree* node){
+    q->data[q->size] = node;
+    q->size++;
+}
+
+tree* dequeue(queue *q){
+    tree* ret = q->data[0];
+    q->size--;
+
+    for(int i = 0; i < q->size; i++)
+        q->data[i] = q->data[i + 1];
+
+    return ret;
+}
+
+tree* newnode(int data){
+    tree* ret = malloc(sizeof(tree));
+    ret->data = data;
+    ret->left = NULL;
+    ret->right = NULL;
+    ret->balance = 0;
+    return ret;
+}
+
+int height(tree* node){
+    if(node == NULL) return 0;
+    stack nodes = {.size = 0};
+    tree* current = node, *prev = NULL;
+    int height = 1, maxheight = 0;
+
+    do {
+        if(current->left && current->left != prev){
+            push(&nodes, current->left);
+            height++;
+            current = current->left;
+            continue;
+        }
+
+        if(current->right){
+            push(&nodes, current->right);
+            height++;
+            current = current->right;
+            continue;
+        }
+
+        if(height > maxheight)
+            maxheight = height;
+
+        prev = current;
+        current = pop(&nodes);
+        height--;
+
+    } while(nodes.size > 0);
+
+    return maxheight;
+}
+
+int getBalanceFactor(tree* node){
+    return height(node->left) - height(node->right);
+}
+
+// this function returns parent of node
+tree* getParent(tree* root, tree* node){
+    if(root == node) return root;
+    tree* current = root;
+
+    while(current != NULL){
+        if(current->data < node->data){
+            if(current->right == node) return current;
+            else current = current->right;
+        }
+
+        else if(current->left == node) return current;
+        else current = current->left;
+    }
+
+    return current;
+}
+
+int max(int a, int b){
+    return (a > b) ? a : b;
+}
+
+// this function right rotates node's right subtree
+tree* RR(tree* node){
+    tree *lchild = node->left;
+    tree *T2 = lchild->right;
+
+    // rotation
+    lchild->right = node;
+    node->left = T2;
+
+    return lchild;
+}
+
+// this function left rotates node's left subtree
+tree* LL(tree* node){
+    tree *rchild = node->right;
+    tree *T2 = rchild->left;
+
+    // rotation
+    rchild->left = node;
+    node->right = T2;
+
+    return rchild;
+}
+
+// this function balances the tree
+tree* stabilise(tree *node, int data){
+    if(node == NULL) return node;
+
+    node->balance = getBalanceFactor(node);
+    if(-1 <= node->balance && node->balance <= 1) return node;
+
+    else if(node->balance > 1){
+        if(data > node->left->data)
+            node->left = LL(node->left);
+        return RR(node);
+    }
+
+    else {
+        if(data < node->right->data)
+            node->right = RR(node->right);
+        return LL(node);
+    }
+}
+
+// this function inserts a new node into tree and returns new root
+tree* insert(tree* root, int data){
+    if(root == NULL) return newnode(data);
+
+    tree* current = root;
+
+    while (current != NULL) {
+        if (data < current->data) {
+            if (current->left == NULL) {
+                current->left = newnode(data);
+                break;
+            } else current = current->left;
+        }
+
+        else if(data == current->data)
+            return root;
+
+        else if (current->right == NULL) {
+            current->right = newnode(data);
+            break;
+        } else current = current->right;
+    }
+
+    tree* parent = getParent(root, current);
+    tree* subroot = stabilise(parent, data);
+    tree* child = parent;
+    parent = getParent(root, child);
+
+    if(parent->right == subroot->left)
+        parent->right = subroot;
+
+    // if(child == root)
+    //     return subroot;
+    // return root;
+    return (child == root) ? subroot : root;
+}
+
+// display nodes of tree level wise
+void display_levelwise(tree *root) {
+    if(root == NULL) {
+        printf("Tree is empty.");
+        return;
+    }
+
+    int h = height(root);
+    queue q = {.size = 0};
+    tree *current = NULL;
+    enqueue(&q, root);
+    int nodes = 0;      // count of how many nodes printed
+    int limiter = 1;    // used to print newline
+
+    for (int i = 0; i < h + 1; i++)
+        printf(" ");
+
+    while(q.size) {
+        current = dequeue(&q);
+
+        if(nodes == limiter){
+            printf("\n");
+            for (int i = 0; i < h; i++)
+                printf(" ");
+            h--;
+            nodes = 0;          // reset nodes
+            limiter <<= 1;      // since every level has atmost twice the nodes as previous level, double the limiter
+        }
+
+        nodes++;
+        if(!current) {
+            printf("  ");
+            continue;
+        }
+
+        printf("%d ", current->data);
+
+        enqueue(&q, current->left);
+        enqueue(&q, current->right);
+    }
+    puts("\n");
+}
+
+void main(){
+    tree* head = insert(NULL, 1);
+    head = insert(head, 2);
+    // head = insert(head, 3);
+    // display_levelwise(head);
+
+    // head = insert(head, 4);
+    // display_levelwise(head);
+
+    // head = insert(head, 5);
+    // display_levelwise(head);
+
+    for(int i = 3; i < 10; i++){
+        head = insert(head, i);
+        display_levelwise(head);
+    }
+
+    // printf("%d\n", height(head));
+    // printf("%d\n", height(head->right));
+    // printf("%d", getBalanceFactor(head));
+}
