@@ -1,0 +1,228 @@
+Write a C program to accept an undirected weighted graph from user and represent it with Adjacency
+Matrix and find a minimum spanning tree using Kruskals algorithm.
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int edges[10][10];
+    int dim;
+} graph;
+
+typedef struct {
+    int v1, v2;
+    int w;
+} edge;
+
+typedef struct {
+    int data[15];
+    int size;
+} stack;
+typedef stack queue;
+
+void push(stack *s, int val){
+    s->data[s->size] = val;
+    s->size++;
+}
+
+int pop(stack *s){
+    int data = s->data[0];
+    s->size--;
+    s->data[s->size] = 0;
+    return data;
+}
+
+void enqueue(queue *q, int val){
+    push(q, val);
+}
+
+int dequeue(queue *q){
+    int result = q->data[0];
+
+    for (int i = 0; i < q->size - 1; i++)
+        q->data[i] = q->data[i + 1];
+    
+    return result;
+}
+
+// this function swaps contents of two edges
+void swap(edge *e1, edge *e2){
+    edge temp;
+    temp.v1 = e1->v1;
+    temp.v2 = e1->v2;
+    temp.w = e1->w;
+
+    e1->v1 = e2->v1;
+    e1->v2 = e2->v2;
+    e1->w = e2->w;
+
+    e2->v1 = temp.v1;
+    e2->v2 = temp.v2;
+    e2->w = temp.w;
+}
+
+// this function returns number of edges in lower triangle of matrix
+int countEdges(graph *g){
+    int edges = 0;
+
+    for(int i = 0; i < g->dim; i++)
+        for (int j = 0; j < i; j++)
+            if(g->edges[i][j]) edges++;
+
+    return edges;
+}
+
+int rowsum(){
+    int sum = 0;
+    return sum;
+}
+
+void insertEdge(graph *g, int v1, int v2, int weight){
+    g->edges[v1][v2] = weight;
+    g->edges[v2][v1] = weight;
+}
+
+void removeEdge(graph *g, int v1, int v2){
+    g->edges[v1][v2] = 0;
+    g->edges[v2][v1] = 0;
+}
+
+graph* Kruskal(graph *g){
+    graph *result = calloc(1, sizeof(graph));
+    result->dim = g->dim;
+    int count = countEdges(g);
+    // edge *edges = malloc(count * sizeof(edge));
+    edge edges[10] = {0};
+
+    // Fill edges
+    int k = 0;
+    for (int i = 0; i < g->dim; i++)
+        for (int j = 0; j < i; j++){
+            if(g->edges[i][j]){
+                edges[k].v1 = i;
+                edges[k].v2 = j;
+                edges[k].w = g->edges[i][j];
+                k++;
+            }
+        }
+    
+    // Sort edges
+    // int len = sizeof(edges[0]) / sizeof(edges);
+    int len = count;
+    for(int i = 0; i < len; i++)
+        for(int j = 0; j < len - i - 1; j++)
+            if(edges[j].w > edges[j + 1].w)
+                swap(edges + j, edges + j + 1);
+    
+    // Kruskals Algorithm
+    k = 0;
+    int v1, v2, w;
+    int visited[10] = {0};
+
+    for(int i = 0; i < count; i++){
+        v1 = edges[i].v1;
+        v2 = edges[i].v2;
+        w = edges[i].w;
+
+        if(!(visited[v1] && visited[v2])){
+            result->edges[v1][v2] = w;
+            result->edges[v2][v1] = w;
+
+            visited[v1] = 1;
+            visited[v2] = 1;
+        }
+    }
+    
+    return result;
+}
+
+void display(graph *g){
+    puts("");
+    printf("  | ");
+    for (int i = 0; i < g->dim; i++)
+        printf("%d ", i);
+    puts("");
+
+    for(int i = 0; i < 4 * g->dim; i++)
+        printf("-");
+    puts("");
+
+    for (int i = 0; i < g->dim; i++) {
+        printf("%d | ", i);
+        for (int j = 0; j < g->dim; j++)
+            printf("%d ", g->edges[i][j]);
+        puts("");
+    }
+    
+    
+}
+
+void menu(){
+    puts("\n1. Insert edge");
+    puts("2. Remove Edge");
+    puts("3. Apply Kruskals Algorithm");
+    puts("4. Display Graph");
+}
+
+void start(graph *g){
+    int choice, v1, v2, w;
+    loop:
+    printf("Enter your choice: ");
+    scanf("%d", &choice);
+
+    switch(choice){
+        case 1:
+            printf("Enter which vertex you want to attach an edge: ");
+            scanf("%d", &v1);
+            printf("Enter other vertex: ");
+            scanf("%d", &v2);
+            printf("Enter weight: ");
+            scanf("%d", &w);
+            g->edges[v1][v2] = w;
+            g->edges[v2][v1] = w;
+            break;
+
+        case 2:
+            printf("Enter which vertex you want to remove an edge: ");
+            scanf("%d", &v1);
+            printf("Enter other vertex: ");
+            scanf("%d", &v2);
+            g->edges[v1][v2] = 0;
+            g->edges[v2][v1] = 0;
+            break;
+
+        case 3:
+            // free(g);
+            g = Kruskal(g);
+            break;
+        
+        case 4:
+            display(g);
+            break;
+
+        default:
+            puts("Type a valid choice!");
+    }
+    goto loop;
+}
+
+void main(){
+    graph g = {0};
+    int v = 4;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &v);
+    g.dim = v;
+
+    // insertEdge(&g, 0, 1, 8);
+    // insertEdge(&g, 2, 1, 5);
+    // insertEdge(&g, 3, 1, 2);
+    // insertEdge(&g, 2, 3, 1);
+
+    // display(&g);
+    // graph *new = Kruskal(&g);
+    // display(new);
+
+    menu();
+    start(&g);
+}
