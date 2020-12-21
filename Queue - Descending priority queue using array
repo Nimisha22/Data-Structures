@@ -1,0 +1,223 @@
+/*
+    Question: Write a C program to implement descending priority queue using arrays
+*/
+
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// heap is of descending nature
+typedef struct {
+    int data[25];
+    int size;
+} heap;
+
+// Heap interaction functions
+void enqueue(heap*, int);
+int dequeue(heap*);
+
+// Heap making functions
+void heapup(heap*);
+void heapdown(heap*);
+void levelbalance(heap*);
+void swap(heap*, int, int);
+
+// for style
+void menu();
+void design();
+void display(heap*);
+
+void main(){
+    heap h;
+    h.size = 0;
+    int choice;
+    int buffer;
+
+    // for(int i = 0; i < 5; i++)
+    //     enqueue(&h, i);
+
+    // display(&h);
+    // printf("%d\n", dequeue(&h));
+    // display(&h);
+
+    menu();
+    while(1){
+        printf("Enter your choice\n>");
+        scanf("%d", &choice);
+
+        if(choice == 1){
+            printf("Which number do you want to enqueue?\n>");
+            scanf("%d", &buffer);
+            enqueue(&h, buffer);
+        }
+
+        else if(choice == 2){
+            if(h.size > 0)
+                printf("\n%d was dequeued from the queue\n", dequeue(&h));
+            else 
+                puts("The queue is empty!");
+        }
+        
+        else if(choice == 3)
+            display(&h);
+        
+        else if(choice == 4)
+            menu();
+        
+        else if(choice == 5){
+            puts("Exiting...");
+            return;
+        }
+        
+        else {
+            puts("Please type a valid choice!");
+            menu();
+        }
+    }
+}
+
+void menu(){
+    design();
+    puts("\n1. Enqueue a number");
+    puts("2. Dequeue the queue");
+    puts("3. Display the queue");
+    puts("4. Display menu again");
+    puts("5. Exit");
+    design();
+}
+
+void enqueue(heap *h, int number){
+    h->size++;
+    h->data[h->size] = number;
+
+    heapup(h);
+    levelbalance(h);    // this function just balances a horizontal level of children
+}
+
+int dequeue(heap *h){
+    int ret = h->data[1];
+
+    // exchange first and last data item
+    int temp = h->data[1];
+    h->data[1] = h->data[h->size];
+    h->data[h->size] = temp;
+
+    h->size--;
+
+    heapdown(h);
+
+    return ret;
+}
+
+void heapup(heap *h){
+    int k = h->size;
+    while(k > 1){
+
+        // if parent < child then swap them
+        if(h->data[k / 2] < h->data[k])
+            swap(h, k / 2, k);
+
+        k /= 2;
+    }
+}
+
+void heapdown(heap *h){
+    int k = 1;
+    while(2 * k <= h->size){
+
+        if(h->data[k] < h->data[2 * k])
+            swap(h, 2 * k, k);
+
+        k *= 2;
+    }
+}
+
+void levelbalance(heap *h){
+    int k = 1;
+    while(2 * k < h->size){
+        int j = 2 * k;
+
+        if(h->data[j] < h->data[j + 1])
+            swap(h, j, j + 1);
+        
+        k *= 2;
+    }
+}
+
+void swap(heap *h, int first, int second){
+    int temp = h->data[first];
+    h->data[first] = h->data[second];
+    h->data[second] = temp;
+}
+
+void design(){
+    printf("\n");
+    for(int i = 0; i < 100; i++)
+        printf("-");
+    printf("\n");
+}
+
+void display(heap* h){
+    printf("\n");
+
+    if(h->size == 0){
+        printf("The queue is empty.\n");
+        return;
+    }
+
+    printf("The queue is ");
+
+    for(int i = 1; i <= h->size; i++)
+        printf("%d ", h->data[i]);
+    printf("\n");
+}
+
+
+/*  Output
+
+----------------------------------------------------------------------------------------------------
+
+1. Enqueue a number
+2. Dequeue the queue
+3. Display the queue
+4. Display menu again
+5. Exit
+
+----------------------------------------------------------------------------------------------------
+Enter your choice
+>1
+Which number do you want to enqueue?
+>25
+Enter your choice
+>1
+Which number do you want to enqueue?
+>50
+Enter your choice
+>1
+Which number do you want to enqueue?
+>100
+Enter your choice
+>3
+
+The queue is 100 50 25
+Enter your choice
+>2
+
+100 was dequeued from the queue
+Enter your choice
+>2
+
+50 was dequeued from the queue
+Enter your choice
+>2
+
+25 was dequeued from the queue
+Enter your choice
+>2
+The queue is empty!
+Enter your choice
+>5
+Exiting...
+
+*/
+
