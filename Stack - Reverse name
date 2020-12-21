@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include<string.h>
+
+
+struct name {
+    int top;
+    char str[100];
+}s;
+
+int i = 0;
+
+void push(char x);
+int pop(void);
+
+int main() {
+    struct name s;
+    s.top = -1;
+    int j, k;
+    char name[30], midnlast[30], name1[30], revlast[30];
+    printf("Enter name: ");
+    scanf(" %[^\n]s", name);
+    
+    i = 0;
+    
+    while(name[i] != '\0') {
+        push(name[i]);
+        i++;
+    }
+    
+    j = 0;
+    
+    while(name[i] != ' ') {
+        revlast[j] = pop();
+        i--;
+        j++;
+    }
+    
+    int n = j;
+    j = 0;
+    k = n - 2;
+    while(k != -1) {
+        name1[j] = revlast[k];
+        k--;
+        j++;
+    }
+    name1[j] = ' ';
+    j++;
+    
+    k = 0;
+    
+    while(i != 0) {
+        midnlast[k] = pop();
+        i--;
+        k++;
+    }
+    
+    n = k;
+    k = 0;
+    
+    while(k != n) {
+        push(midnlast[k]);
+        k++;
+    }
+    
+    while(k != -1) {
+        name1[j] = pop();
+        j++;
+        k--;
+    }
+    
+    printf("%s",name1);
+    
+}
+
+void push(char x) {
+    s.top++;
+    s.str[s.top]=x;
+}
+
+int pop() {
+    int x;
+    x = s.str[s.top];
+    s.top--;
+    return x;
+}
+
