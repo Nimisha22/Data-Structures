@@ -1,0 +1,289 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct binary_tree
+{
+    int data;
+    struct binary_tree *lptr;
+    struct binary_tree *rptr;
+};
+
+struct stk
+{
+    int top;
+    struct binary_tree *st[100];
+}s;
+
+
+void push(struct binary_tree *T)
+{
+    if(s.top<=99)
+    {
+        s.top++;
+        s.st[s.top] = T;
+        //s.top++;
+    }
+    else
+        printf("\nStack Overflow. ");
+}
+
+
+struct binary_tree *pop()
+{
+    struct binary_tree *x;
+    if(s.top!=-1)
+    {
+        x = s.st[s.top];
+        s.top--;
+        return x;
+    }
+    else
+        printf("\nStack empty. ");
+    return(NULL);
+}
+
+
+struct binary_tree *insertion(struct binary_tree *first, int x)
+{
+    struct binary_tree *temp;
+    temp = first;
+    struct binary_tree *newest = NULL;
+    if(temp == NULL)
+    {
+        newest = (struct binary_tree *)malloc(sizeof(struct binary_tree));
+        newest->lptr = newest->rptr = NULL;
+        newest->data = x;
+        temp = newest;
+        return temp;
+    }
+    else
+    {
+        while(temp!=NULL)
+        {
+            if(x<temp->data)
+            {
+                if(temp->lptr!=NULL)
+                {
+                    temp = temp->lptr;
+                }
+                else
+                {
+                    newest = (struct binary_tree *)malloc(sizeof(struct binary_tree));
+                    newest->lptr = newest->rptr = NULL;
+                    newest->data = x;
+                    temp->lptr = newest;
+                    break;
+                }
+            }
+            else
+            {
+                if(temp->rptr!=NULL)
+                {
+                    temp = temp->rptr;
+                }
+                else
+                {
+                    newest = (struct binary_tree *)malloc(sizeof(struct binary_tree));
+                    newest->rptr = newest->lptr = NULL;
+                    newest->data = x;
+                    temp->rptr = newest;
+                    break;
+                }
+            }
+        }
+        return (newest);
+    }
+}
+
+
+/*int height(struct avl_tree *temp)
+{
+    int left, right;
+    if(temp == NULL)
+        return 0;
+    else
+    {
+        left = height(temp->lptr);
+        right = height(temp->rptr);
+    }
+    if(left>right)
+        return (left+1);
+    else
+        return (right+1);
+}*/
+
+
+int height_binary_tree(struct binary_tree *first)
+{
+    struct binary_tree *temp = first;
+    int leftcount, rightcount, total;
+    struct binary_tree *left;
+    left = first->lptr;
+    struct binary_tree *right;
+    right = first->rptr;
+    leftcount = counter(left);
+    rightcount = counter(right);
+    total = ((1 + leftcount + rightcount)/2);
+    printf("%d\n", total);
+    return(0);
+}
+
+
+int counter(struct binary_tree *T)
+{
+    if(T == NULL)
+        return(0);
+    else
+    {
+        return(1 + counter(T->lptr) + counter(T->rptr));
+    }
+}
+
+
+struct binary_tree *insucc(struct binary_tree *T)
+{
+    struct binary_tree *temp;
+    struct binary_tree *prev = NULL;
+    temp = T;
+    while(temp!=NULL)
+    {
+        prev = temp;
+        temp = temp->lptr;
+    }
+    printf("\nSuccessor = %d", prev->data);
+    return prev;
+}
+
+
+int delete_binary_tree(struct binary_tree *T, int x)
+{
+    struct binary_tree *temp;
+    temp = NULL;
+    struct binary_tree *temp_left;
+    temp_left =NULL;
+    struct binary_tree *prev;
+    prev = NULL;
+    if(x<T->data)
+        T->lptr = delete_binary_tree(T->lptr, x);
+    else if(x>T->data)
+        T->rptr = delete_binary_tree(T->rptr, x);
+    else
+    {
+        if(T->lptr == NULL && T->rptr == NULL)
+        {
+            free(T);
+            return(NULL);
+        }
+        else if(T->lptr == NULL && T->rptr != NULL)
+        {
+            temp = T->rptr;
+            free(T);
+            return(temp);
+        }
+        else if(T->lptr != NULL && T->rptr == NULL)
+        {
+            temp = T->lptr;
+            free(T);
+            return(temp);
+        }
+        else if(T->lptr!=NULL && T->rptr!=NULL)
+        {
+            temp = insucc(T->rptr);
+            T->data = temp->data;
+            T->rptr = delete_binary_tree(T->rptr, temp->data);
+            return T;
+        }
+    }
+    return(NULL);
+}
+
+
+/*void inorder(struct binary_tree *T)
+{
+    if(T!=NULL)
+    {
+        inorder(T->lptr);
+        printf(" %d", T->data);
+        inorder(T->rptr);
+    }
+}*/
+
+
+void inorder(struct binary_tree *T)
+{
+    while(1)
+    {
+        while(T!=NULL)
+        {
+            push(T);
+            T = T->lptr;
+        }
+        if(s.top!=0)
+            T = pop();
+        else
+            break;
+        printf(" %d", T->data);
+        T = T->rptr;
+    }
+}
+
+
+int main()
+{
+    struct binary_tree *first = NULL;
+    struct binary_tree *temp = NULL;
+    int x, i, choice, n, h;
+    char cont;
+    printf("\nEnter a root node of the tree: ");
+    scanf("%d", &x);
+    first = insertion(first, x);
+    printf("\n%p", first);
+    printf("\nHow many more values are to be added: ");
+    scanf("%d", &n);
+    printf("\nEnter the values to insert in the Binary Tree: ");
+    for(i=0; i<n; i++)
+    {
+        scanf("\n%d", &x);
+        temp = insertion(first, x);
+        printf("\n%p", temp);
+    }
+    inorder(first);
+    do
+    {
+        printf("\nEnter the choice number to perform a specific task: ");
+        printf("\n1. Insert a node in a tree ");
+        printf("\n2. Display the height of the tree ");
+        printf("\n3. Delete a node from the tree ");
+        printf("\n4. Exit. ");
+        scanf("%d", &choice);
+        switch(choice)
+        {
+            case 1:
+                printf("\nEnter the element to insert in the tree: ");
+                scanf("%d", &x);
+                insertion(first, x);
+                inorder(first);
+                goto con;
+            case 2:
+                printf("\nThe height of the existing tree is: ");
+                h = height_binary_tree(first);
+                printf("\nHeight of the tree: %d", h);
+                inorder(first);
+                goto con;
+            case 3:
+                printf("\nEnter the element to delete its node: ");
+                scanf("%d", &x);
+                delete_binary_tree(first, x);
+                printf("\n");
+                inorder(first);
+                goto con;
+            case 4:
+                goto ext;
+        }
+        con:
+        printf("\nDo you want to continue: Y/N");
+        scanf(" %c", &cont);
+    }while(cont == 'y');
+    ext:
+    return 0;
+}
