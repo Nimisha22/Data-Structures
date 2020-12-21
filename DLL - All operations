@@ -1,0 +1,256 @@
+// Question: WAP to implement doubly linked list to and perform operations on it
+// 1. Insert (all cases)
+// 2. Delete (all cases)
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct node {
+    int data;
+    struct node *next, *prev;
+} node;
+
+typedef struct {
+    node *head, *tail;
+    int size;
+} linkedlist;
+
+void menu();
+
+node *newnode(int value) {
+    node *temp = malloc(sizeof(node));
+    temp->data = value;
+    temp->next = NULL;
+    temp->prev = NULL;
+    return temp;
+}
+
+linkedlist *constructor() {
+    linkedlist *list = malloc(sizeof(linkedlist));
+    list->head = NULL;
+    list->tail = NULL;
+    list->size = 0;
+    return list;
+}
+
+// this function adds new node at tail (or end) of list
+void append(linkedlist *list, int value) {
+    if (list->head == NULL) {
+        list->head = newnode(value);
+        list->tail = list->head;
+        list->size++;
+        return;
+    }
+
+    node *temp = newnode(value);
+
+    // appropriate wiring
+    temp->prev = list->tail;
+    list->tail->next = temp;
+
+    list->tail = temp;
+    list->size++;
+}
+
+void insert(linkedlist *list, int index, int value) {
+    if (index > list->size) {
+        append(list, value);
+        return;
+    }
+
+    if (index < 0) {
+        puts("Provide a proper index!");
+        return;
+    }
+
+    // if user wants to insert value at start of list
+    if(index == 0){
+        node *temp = newnode(value);
+        temp->next = list->head;
+        list->head->prev = temp;
+        list->head = temp;
+        list->size++;
+        return;
+    }
+
+    node *current = list->head;
+    for (int i = 0; i < index - 1; i++)
+        current = current->next;
+
+    node *temp = newnode(value);
+
+    // appropriate wiring
+    temp->next = current->next;
+    temp->prev = current;
+    temp->next->prev = temp;
+
+    current->next = temp;
+
+    list->size++;
+}
+
+// delete node at provided index
+void del(linkedlist *list, int index) {
+    // bounds checking
+    if (index < 0 || index > list->size)
+        return;
+
+    if(list->head == NULL){
+        puts("The list is already empty!");
+        return;
+    }
+
+    // if user wants to delete first element
+    if (index == 0) {
+        // if list has only one node
+        if(list->size == 1){
+            free(list->head);
+            list->head = NULL;
+            list->tail = NULL;
+        }
+
+        else{
+            list->head = list->head->next;
+            free(list->head->prev);
+            list->head->prev = NULL;
+        }
+
+        list->size--;
+        return;
+    }
+
+    // if user wants to delete the last element
+    if (index == list->size) {
+        list->tail = list->tail->prev;
+        free(list->tail->next);
+        list->tail->next = NULL;
+        list->size--;
+        return;
+    }
+
+    // if user wants to delete element at specific index
+    node *current = list->head;
+    for (int i = 0; i < index - 1; i++)
+        current = current->next;
+
+    node *temp = current->next;
+
+    current->next = temp->next;
+    if(temp->next != NULL)
+        temp->next->prev = current;
+
+    free(temp);
+    list->size--;
+}
+
+// remove a specific value from linkedlist
+void kill(linkedlist *list, int value){
+    node *current = list->head;
+
+    if(current->data == value){
+        list->head = current->next;
+        list->head->prev = NULL;
+        free(current);
+        return;
+    }
+
+    while(current != NULL && current->next != NULL && current->next->data != value)
+        current = current->next;
+
+    node *temp = current->next;
+    if(temp->next != NULL)
+        current->next = temp->next;
+        
+    free(temp);
+}
+
+void display(linkedlist *list){
+    if(list == NULL || list->head == NULL){
+        puts("List is empty");
+        return;
+    }
+
+    node *current = list->head;
+
+    while(current != NULL){
+        printf("%d <-> ", current->data);
+        current = current->next;
+    }
+
+    puts("NULL");
+}
+
+void main() {
+    linkedlist *list = constructor();
+    int choice, val, ind;
+
+    // for (int i = 0; i < 5; i++)
+    //     append(list, i);
+    
+    // kill(list, 2);
+    // del(list, 2);
+
+    // display(list);
+    
+
+    menu();
+    while (1) {
+        printf("\nEnter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter the number: ");
+                scanf("%d", &val);
+                printf("Enter the index: ");
+                scanf("%d", &ind);
+                insert(list, ind, val);
+                break;
+
+            case 2:
+                printf("Enter the number: ");
+                scanf("%d", &val);
+                append(list, val);
+                break;
+
+            case 3:
+                printf("Enter node with value to be removed: ");
+                scanf("%d", &val);
+                kill(list, val);
+                break;
+
+            case 4:
+                printf("Enter index: ");
+                scanf("%d", &ind);
+                del(list, ind);
+                break;
+
+            case 5:
+                display(list);
+                break;
+
+            case 6:
+                return;
+
+            default:
+                printf("\nEnter a valid number!");
+                menu();
+                break;
+        }
+    }
+}
+
+void menu() {
+    for (int i = 0; i < 100; i++)
+        printf("-");
+
+    puts("\n1. Insert a element");
+    puts("2. Append value to list");
+    puts("3. Remove a node with specific value");
+    puts("4. Remove node at index");
+    puts("5. Display elements of list");
+    puts("6. Exit");
+
+    for (int i = 0; i < 100; i++)
+        printf("-");
+}
