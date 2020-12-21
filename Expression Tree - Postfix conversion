@@ -1,0 +1,323 @@
+/*
+    Question: WAP to take a postfix expression from user and 
+    display it as a prefix and infix expression
+*/
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct node {
+    char data;
+    struct node *left, *right;
+} tree;
+
+// stack/queue of nodes
+typedef struct {
+    tree *data[20];
+    int size;
+} stack;
+typedef stack queue;
+
+// stack of characters
+typedef struct {
+    char data[20];
+    int size;
+} stackc;
+
+void push(stack *s, tree *node) {
+    s->data[s->size] = node;
+    s->size++;
+}
+
+tree *pop(stack *s) {
+    s->size--;
+    tree *ret = s->data[s->size];
+    s->data[s->size + 1] = NULL;
+    return ret;
+}
+
+tree *peek(stack *s) {
+    return s->data[s->size - 1];
+}
+
+void pushc(stackc *s, char ch) {
+    s->data[s->size] = ch;
+    s->size++;
+}
+
+char popc(stackc *s) {
+    s->size--;
+    char ret = s->data[s->size];
+    s->data[s->size + 1] = '\0';
+    return ret;
+}
+
+void enqueue(queue *q, tree *node) {
+    push(q, node);
+}
+
+tree *dequeue(queue *q) {
+    tree *ret = q->data[0];
+    q->size--;
+
+    for (int i = 0; i < q->size; i++)
+        q->data[i] = q->data[i + 1];
+    q->data[q->size] = NULL;
+
+    return ret;
+}
+
+tree *newnode(char data) {
+    tree *ret = malloc(sizeof(tree));
+
+    ret->data = data;
+    ret->left = NULL;
+    ret->right = NULL;
+
+    return ret;
+}
+
+int priority(char op) {
+    if (op == '+' || op == '-')
+        return 1;
+    else if (op == '*' || op == '/')
+        return 2;
+
+    return -1;
+}
+
+int isoperator(char ch) {
+    return (
+        ch == '+' ||
+        ch == '-' ||
+        ch == '*' ||
+        ch == '/');
+}
+
+int isPostfix(char *str, int len) {
+    if (len < 3)
+        return 0;
+
+    stackc characters = {.size = 0};
+    while (*str != '\0') {
+        if (isoperator(*str))
+            popc(&characters);
+        else
+            pushc(&characters, *str);
+        str++;
+    }
+    return characters.size == 1;
+}
+
+// this function inserts a postfix expression into tree
+tree *make(tree *root, char *str, int len) {
+    stackc chars = {.size = 0};
+    queue nodes = {.size = 0};
+
+    for (int i = 0; i < len; i++) {
+        if (!isoperator(str[i])) {
+            pushc(&chars, str[i]);
+            push(&nodes, newnode(str[i]));
+        }
+
+        else if (root == NULL) {
+            root = newnode(str[i]);
+            popc(&chars);
+            popc(&chars);
+
+            root->right = pop(&nodes);
+            root->left = pop(&nodes);
+            enqueue(&nodes, root);
+        }
+
+        else {
+            tree *current = newnode(str[i]);
+
+            // do appropriate operations based on number of characters in stack
+            if (chars.size == 0) {
+                current->right = pop(&nodes);
+                current->left = pop(&nodes);
+            } else if (chars.size == 1) {
+                popc(&chars);
+
+                current->right = pop(&nodes);
+                current->left = pop(&nodes);
+            } else if (chars.size == 2) {
+                popc(&chars);
+                popc(&chars);
+
+                current->right = pop(&nodes);
+                current->left = pop(&nodes);
+                enqueue(&nodes, current);
+                continue;
+            }
+
+            // if char stack has more than 2 operands then
+            // construct tree based on priority of operators
+            else if (priority(str[i]) >= priority(root->data)) {
+                current->right = pop(&nodes);
+                current->left = pop(&nodes);
+                popc(&chars);
+            } else {
+                current->left = pop(&nodes);
+                current->right = pop(&nodes);
+                popc(&chars);
+            }
+            enqueue(&nodes, current);
+            root = current;
+        }
+    }
+
+    return root;
+}
+
+// this function displays the tree in preorder way
+void preorder(tree *root) {
+    if (root == NULL) {
+        printf("Tree is empty");
+        return;
+    }
+
+    stack nodes = {.size = 0};
+    tree *current = root;
+    push(&nodes, root);
+
+    do {
+        while (current != 0) {
+            printf("%c ", current->data);
+            push(&nodes, current);
+            current = current->left;
+        }
+        current = pop(&nodes)->right;
+
+    } while (nodes.size != 0);
+}
+
+int isleaf(tree *node) {
+    return node->left == NULL && node->right == NULL;
+}
+
+int maxi(int a, int b){
+    return (a > b) ? a : b;
+}
+
+int heightdiff(tree *root, tree* node, int height){
+    if(root == NULL || node == NULL) return -1;
+    if(root == node) return height;
+
+    return maxi(heightdiff(root->left, node, height + 1), 
+    heightdiff(root->right, node, height + 1));
+}
+
+// this function displays the tree in inorder way
+void inorder(tree *root) {
+    if (root == NULL) {
+        printf("Tree is empty");
+        return;
+    }
+
+    stack nodes = {.size = 0};
+    int depth = 0;
+    tree *current = root;
+    tree *prev = root;
+    tree* temp;
+
+    do {
+        while (isoperator(current->data)) {
+            push(&nodes, current);
+            current = current->left;
+            printf("(");
+            depth++;
+        }
+
+        current = peek(&nodes);
+
+        if (!isoperator(current->left->data)) {
+            printf("%c", current->left->data);
+        }
+
+        printf(" %c ", current->data);
+
+        if (!isoperator(current->right->data)) {
+            printf("%c)", current->right->data);
+            depth--;
+        }
+
+        prev = current;
+        current = current->right;
+        temp = peek(&nodes);
+        if(nodes.size <= 0) break;
+
+        int diff = heightdiff(temp, current, 0) - 2;
+        while(diff > 0){
+            printf(")");
+            diff--;
+            depth--;
+        }
+        pop(&nodes);
+    } while (nodes.size > 0 || isoperator(current->data));
+
+    while (depth > 0) {
+        printf(")");
+        depth--;
+    }
+}
+
+void main() {
+    tree *root = NULL;
+    char line[20];
+    char *shaming[] = {
+        "You did not type a postfix expression!",
+        "POSTFIX EXPRESSION ONLY",
+        "I said POSTFIX!",
+        "Are you serious?",
+    };
+    int shamesize = 0;
+
+get:
+    printf("Enter a postfix expression: ");
+    gets(line);
+    int len = strlen(line);
+
+    // just removing whitespaces
+    for (int i = 0; i < len; i++) {
+        if (line[i] == ' ') {
+            for (int j = i; j < len - 1; j++)
+                line[j] = line[j + 1];
+            i--;
+            len--;
+            line[len] = '\0';
+        }
+    }
+
+    // juuuuuust making sure that user has atleast 2 digit IQ
+    if (!isPostfix(line, len)) {
+        puts(shaming[shamesize]);
+        shamesize = (shamesize + 1) % 4;
+        goto get;
+    }
+
+    shamesize = 0;
+    root = make(root, line, len);
+
+    printf("Prefix expression: ");
+    preorder(root);
+    printf("\nInfix expression: ");
+    inorder(root);
+}
+
+----------------------------------------------------------------------
+/*
+Output:
+
+Enter a postfix expression: PQR/-S*
+Prefix expression: * - P / Q R S
+Infix expression: ((P - (Q / R)) * S)
+
+Enter a postfix expression: ab+cd+-k/
+Prefix expression: / - + a b + c d k
+Infix expression: (((a + b) - (c + d)) / k)
+
+*/
