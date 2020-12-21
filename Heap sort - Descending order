@@ -264,6 +264,35 @@ int rem(heap **h) {
 }
 
 
+// this function is just for debugging purpose
+// this function display heap levelwise
+void display(heap *h) {
+    queue q = {.size = 0};
+    enqueue(&q, h);
+
+    heap *current = NULL;
+    int nodes = 0;
+    int limiter = 1;
+
+    while (q.size) {
+        current = dequeue(&q);
+
+        if (nodes == limiter) {
+            printf("\n");
+            nodes = 0;
+            limiter <<= 1;
+        }
+
+        nodes++;
+        if (!current) continue;
+
+        printf("%d ", current->data);
+        enqueue(&q, current->left);
+        enqueue(&q, current->right);
+    }
+}
+
+
 int main() {
     heap *h = NULL;
     int size, length;
