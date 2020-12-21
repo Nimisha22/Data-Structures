@@ -1,0 +1,348 @@
+Write a non-recursive program to implement linear probing with chaining with replacement. 
+Use hashfunction as folding at boundaries method. 
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#define TABLESIZE 10
+
+typedef struct {
+    long int value;
+    int chain;
+} row;
+
+row hashtable[TABLESIZE] = {0};
+
+// this function returns the given parameter in reverse
+int reverse(int num){
+    int result = 0;
+
+    while(num > 0){
+        result = result * 10 + num % 10;
+        num /= 10;
+    }
+
+    return result;
+}
+
+// this function returns number of digits in given parameter
+int digits(long int number){
+    int d = 0;
+
+    while(number > 0){
+        d++;
+        number /= 10;
+    }
+
+    return d;
+}
+
+// This function swaps values of its arguments
+void swap(long int *a, long int *b){
+    long int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+// this function returns the hash value of parameter
+// the hashing technique used is folding at boundaries
+int hash(long int key){
+    int *buffer = calloc(digits(key) / 3l + 1l, sizeof(int));
+    int bufferlen = 0;
+
+    // divide the number into multiple gropus of atmax 3 digits each
+    while(key > 0){
+        buffer[bufferlen] = (int) (key % 1000l);
+        bufferlen++;
+        key /= 1000l;
+    }
+
+    // reverse digits at first and last groups of buffer
+    buffer[0] = reverse(buffer[0]);
+    buffer[bufferlen - 1] = reverse(buffer[bufferlen - 1]);
+
+    int addition = 0;
+
+    for(int i = 0; i < bufferlen; i++)
+        addition += buffer[i];
+    
+    return addition % TABLESIZE;
+}
+
+// this value returns the index of element 
+// which comes just before @value in the chain of @hashedIndex
+int getprevious(int value, int hashedIndex){
+    int previous = hashedIndex;
+    int current = hashedIndex;
+
+    while(hashtable[current].value != value){
+        previous = current;
+        current = hashtable[current].chain;
+    }
+
+    return previous;
+}
+
+// this function returns last chained index of current index
+int getlastchain(int hashedIndex){
+
+    while(hashtable[hashedIndex].chain != 0)
+        hashedIndex = hashtable[hashedIndex].chain;
+    
+    return hashedIndex;
+}
+
+// helper function for put function
+// it find the next available slot in hashtable
+int nextslot(int hashedIndex){
+    int current = hashedIndex;
+
+    // if current chain is zero
+    if(hashtable[current].chain == 0 &&
+        // and next index is available 
+        hashtable[current + 1].value == 0){
+        
+        // return next index
+        return current + 1;
+    }
+
+    // if next index not available
+    do {
+        current = getlastchain(current);
+
+        // now chain of current index is 0
+        // check if next index is available
+        if(hashtable[current + 1].value == 0 && hashtable[current + 1].chain == 0)
+            return current + 1;
+        
+        // if not available then follow the chain of next index
+        current += 1;
+    } while(hashtable[current].value != 0);
+}
+
+// this function puts the specified value into the hashtable
+void put(long int value){
+    int index = hash(value);
+
+    // if no collision then place it here
+    if(hashtable[index].value == 0 && hashtable[index].chain == 0)
+        hashtable[index].value = value;
+    
+
+    // if collision occurs
+    // then find if current number is sitting in its proper place
+    else if(hash(hashtable[index].value) == index){
+        // then put the new value into next available slot
+        int lchain = getlastchain(index);
+        int slot = nextslot(index);
+
+        hashtable[lchain].chain = slot;
+        hashtable[lchain].chain = slot;
+        hashtable[slot].value = value;
+    }
+
+    // otherwise kick the current number
+    // and place the new number into current index
+    // and place the old kicked number into last of chain
+    else {
+        int kicked = hashtable[index].value;
+        int prev_kicked = getprevious(kicked, hash(kicked));
+        int lchain = getlastchain(index);
+        int slot = nextslot(lchain);
+
+        // update the chain of element which comes just before the kicked number
+        hashtable[prev_kicked].chain = lchain;
+
+        // put the new value in its proper place
+        hashtable[index].value = value;
+        hashtable[index].chain = 0;
+
+        // put the kicked number at last of chain
+        hashtable[lchain].chain = slot;
+        hashtable[slot].value = kicked;
+    }
+}
+
+// this function removes the @value from hashtable
+void take(long int value){
+    int index = hash(value);
+
+    // if found at its proper index
+    if(hashtable[index].value == value){
+        hashtable[index].value = 0;
+        hashtable[index].chain = 0;
+        return;
+    }
+
+    int current = index;
+
+    // while the value at @current index is not the value to be deleted and it has chained link
+    while(hashtable[current].value != value && hashtable[current].chain != 0){
+        index = current;
+        current = hashtable[current].chain;
+    }
+
+    // if the given value exists in table then remove it 
+    if(hashtable[current].value == value){
+        hashtable[index].chain   = hashtable[current].chain;
+        hashtable[current].value = 0;
+        hashtable[current].chain = 0;
+    }
+}
+
+// this function returns index of @key from the hashtable
+long int get(long int key){
+    int index = hash(key);
+
+    // while current value != key and it has a chain
+    while(hashtable[index].value != key && hashtable[index].chain != -1)
+        index = hashtable[index].chain;
+    
+    if(hashtable[index].value == key)
+        return index;
+    else return -1;
+}
+
+// this function displays contents of hashtable
+void display(){
+    puts("\nindex\t \tValue\tChain\n");
+
+    for (int i = 0; i < TABLESIZE; i++)
+        printf("%d\t|\t%ld\t%d\n", i, hashtable[i].value, hashtable[i].chain);
+    
+}
+
+void menu(){
+    puts("\n1. Enter a number into hashtable");
+    puts("2. Retreive a number from hashtable");
+    puts("3. Remove a value from hashtable");
+    puts("4. Display Hashtable");
+    puts("5. Exit");
+}
+
+void start(){
+    int choice;
+    long int num;
+
+    loop:
+    printf("\nEnter your choice: ");
+    scanf("%d", &choice);
+
+    switch (choice){
+        case 1:
+            printf("Enter the numberto be inserted: ");
+            scanf("%ld", &num);
+            put(num);
+            break;
+        case 2:
+            printf("Enter the number to be retreived: ");
+            scanf("%ld", &num);
+            int index = get(num);
+
+            if(index == -1)
+                puts("The number is not present in table");
+            else
+                printf("The number %ld is present in table at index %d\n", num, index);
+            break;
+        case 3:
+            printf("Enter the number to be deleted: ");
+            scanf("%ld", &num);
+            take(num);
+            break;
+        case 4: 
+            display();
+            break;
+        case 5:
+            puts("Exiting...");
+            return;
+        default:
+            puts("Enter a valid choice!\n");
+            menu();
+    }
+
+    goto loop;
+}
+
+void main(){
+    menu();
+    start();
+}
+
+
+Output:
+
+1. Enter a number into hashtable
+2. Retreive a number from hashtable
+3. Remove a value from hashtable   
+4. Display Hashtable
+5. Exit
+
+Enter your choice: 1
+Enter the number to be inserted: 11
+
+Enter your choice: 1
+Enter the number to be inserted: 21
+
+Enter your choice: 1
+Enter the number to be inserted: 31
+
+Enter your choice: 4
+
+index           Value   Chain
+
+0       |       0       0    
+1       |       11      2    
+2       |       21      3    
+3       |       31      0    
+4       |       0       0    
+5       |       0       0    
+6       |       0       0    
+7       |       0       0    
+8       |       0       0    
+9       |       0       0    
+
+Enter your choice: 1
+Enter the number to be inserted: 22
+
+Enter your choice: 1
+Enter the number to be inserted: 42
+
+Enter your choice: 4
+
+index           Value   Chain
+
+0       |       0       0
+1       |       11      3
+2       |       22      5
+3       |       31      4
+4       |       21      0
+5       |       42      0
+6       |       0       0
+7       |       0       0
+8       |       0       0
+9       |       0       0
+
+Enter your choice: 3
+Enter the number to be deleted: 21
+
+Enter your choice: 4
+
+index           Value   Chain
+
+0       |       0       0
+1       |       11      3
+2       |       22      5
+3       |       31      0
+4       |       0       0
+5       |       42      0
+6       |       0       0
+7       |       0       0
+8       |       0       0
+9       |       0       0
+
+Enter your choice: 2
+Enter the number to be retreived: 22
+The number 22 is present in table at index 2
+
+Enter your choice: 5
+Exiting...
