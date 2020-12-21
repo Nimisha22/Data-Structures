@@ -1,0 +1,313 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// MAX-HEAP
+typedef struct node {
+    int data;
+    struct node *left, *right;
+} heap;
+
+typedef struct {
+    heap *data[20];
+    int size;
+} queue;
+typedef queue stack;
+
+void push(stack *s, struct node *val) {
+    s->data[s->size] = val;
+    s->size++;
+}
+
+heap *pop(stack *s) {
+    heap *ret = s->data[s->size - 1];
+    s->data[s->size] = NULL;
+    s->size--;
+    return ret;
+}
+
+void enqueue(queue *q, struct node *val) {
+    q->data[q->size] = val;
+    q->size++;
+}
+
+heap *dequeue(queue *q) {
+    heap *ret = q->data[0];
+
+    for (int i = 0; i < q->size - 1; i++)
+        q->data[i] = q->data[i + 1];
+
+    q->size--;
+    return ret;
+}
+
+heap *newnode(int value) {
+    heap *ret = malloc(sizeof(heap));
+
+    ret->data = value;
+    ret->left = NULL;
+    ret->right = NULL;
+
+    return ret;
+}
+
+// this function swaps values of given nodes
+void swap(struct node *first, struct node *second) {
+    int temp = first->data;
+    first->data = second->data;
+    second->data = temp;
+}
+
+// this function returns parent of last node
+heap* get_last_parent(heap *h){
+    if(h == NULL) return NULL;
+
+    queue q = {.size = 0};
+    enqueue(&q, h);
+
+    heap *current = NULL;
+    heap *possible_parent = NULL;
+
+    while(q.size){
+        current = dequeue(&q);
+        if(current == NULL) return possible_parent;
+        // the parent of last child has only one child or both child
+        if(current->left == NULL && current->right == NULL)
+            return possible_parent;
+        // if current node has only one child then it is the parent of last child
+        if((current->left != NULL && current->right == NULL) ||
+           (current->left == NULL && current->right != NULL)){
+            return current;
+        }
+        possible_parent = current;
+        enqueue(&q, current->left);
+        enqueue(&q, current->right);
+    }
+
+    return possible_parent;
+}
+
+// starting from bottom to top
+// if parent < child swap them
+void heapup(heap *h) {
+    if (h == NULL) return;
+
+    stack s = {.size = 0};
+    push(&s, h);
+
+    heap *current = h;
+    heap *prev = NULL;
+
+    do {
+        // while current has children push it onto stack and move left
+        while (current->left != NULL && current != prev) {
+            push(&s, current);
+            current = current->left;
+        }
+
+        current = pop(&s);
+
+        // if value of current is less than its child
+        // then swap values to make it a appropriate heap
+        if (current->left != NULL && current->data > current->left->data)
+            swap(current, current->left);
+        if (current->right != NULL && current->data > current->right->data)
+            swap(current, current->right);
+
+        prev = current;
+
+        if (current->right != NULL) 
+            current = current->right;
+
+    } while (s.size != 0);
+}
+
+// starting from top to bottom
+// if parent < child then swap them
+void heapdown(heap *h) {
+    if (h == NULL) return;
+
+    heap *current = h;
+    heap *next = NULL, *prev = NULL;
+
+    while (current->left != NULL || current->right != NULL) {
+        if (current->left != NULL && current->data > current->left->data) {
+            swap(current, current->left);
+            next = current->left;
+        }
+
+        if (current->right != NULL && current->data > current->right->data) {
+            swap(current, current->right);
+            next = current->right;
+        }
+
+        prev = current;
+        current = next;
+
+        if(current == NULL || current == prev) break;
+    }
+}
+
+// this function just balances children of heap
+// basically if left child > right child then swap their values
+void levelbalance(heap *h) {
+    // if heap is null or heap node doesnt have children then stop
+    if (h != NULL && h->left == NULL && h->right == NULL) return;
+
+    queue q = {.size = 0};
+    enqueue(&q, h);
+
+    heap *current = NULL;
+
+    while (q.size) {
+        current = dequeue(&q);
+        if (!current) continue;
+        if(current->left == NULL && current->right == NULL) continue;
+
+        // if both its children are not null and left < right then swap the children
+        if (current->left && current->right && current->left->data > current->right->data)
+            swap(current->left, current->right);
+
+        enqueue(&q, current->left);
+        enqueue(&q, current->right);
+    }
+}
+
+// this function adds a new element into heap
+void add(heap **root, int value) {
+    if (*root == NULL) {
+        *root = newnode(value);
+        return;
+    }
+
+    heap *current = NULL;
+    queue q = {.size = 0};
+    enqueue(&q, *root);
+
+    while (q.size) {
+        current = dequeue(&q);
+        if (!current) continue;
+
+        if (current->left == NULL) {
+            current->left = newnode(value);
+            break;
+        }
+
+        if (current->right == NULL) {
+            current->right = newnode(value);
+            break;
+        }
+
+        enqueue(&q, current->left);
+        enqueue(&q, current->right);
+    }
+
+    heapup(*root);
+    levelbalance(*root);
+}
+
+// this function removes the top/root of heap
+int flick(heap **h) {
+    heap *current = *h;
+
+    if(current == NULL)
+        return 1 << 31 - 1;
+        
+    int ret = current->data;
+
+    // if both children of root are empty then delete root itself
+    if(current->left == NULL && current->right == NULL){
+        free(*h);
+        *h = NULL;
+        return ret;
+    }
+
+    heap *last_parent = get_last_parent(current);
+
+    // now remove the last node from heap
+
+    // if node to be deleted is right child of its parent
+    if(last_parent->right != NULL){
+        swap(current, last_parent->right);
+        free(last_parent->right);
+        last_parent->right = NULL;
+    }
+
+    // if node to be deleted is left child of its parent
+    else {
+        swap(current, last_parent->left);
+        free(last_parent->left);
+        last_parent->left = NULL;
+    }
+
+    end:
+    heapdown(current);
+    levelbalance(current);
+
+    return ret;
+}
+
+// this function is just for debugging purpose
+// this function display heap levelwise
+void display(heap *h) {
+    queue q = {.size = 0};
+    enqueue(&q, h);
+
+    heap *current = NULL;
+    int nodes = 0;
+    int limiter = 1;
+
+    while (q.size) {
+        current = dequeue(&q);
+
+        if (nodes == limiter) {
+            printf("\n");
+            nodes = 0;
+            limiter <<= 1;
+        }
+
+        nodes++;
+        if (!current) continue;
+
+        printf("%d ", current->data);
+        enqueue(&q, current->left);
+        enqueue(&q, current->right);
+    }
+}
+
+void main() {
+    heap *h = NULL;
+
+    int size = 6, len;
+
+    // 5 4 1 3 2 6
+    // add(&h, 5);
+    // add(&h, 4);
+    // add(&h, 1);
+    // add(&h, 3);
+    // add(&h, 2);
+    // add(&h, 6);
+
+
+    printf("Enter number of elements in array: ");
+    scanf("%d", &size);
+    
+    len = size;
+    int *arr = calloc(size, sizeof(int));
+
+    for (int i = 0; i < size; i++) {
+
+        printf("array[%d] = ", i);
+        scanf("%d", &arr[i]);
+
+        add(&h, arr[i]);
+        puts("");
+    }
+
+    for(int i = 0; i < len; i++)
+        arr[i] = flick(&h);
+
+    printf("\nAfter sorting the array is: ");
+    for (int i = 0; i < size; i++) {
+        printf("%d ", arr[i]);
+    }
+}
