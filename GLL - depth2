@@ -1,0 +1,97 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+struct gllnode {
+    int tag;
+    struct gllnode *next;
+    union {
+        struct gllnode *dlink;
+        char ch;
+    }s;
+};
+struct gllnode *ptr;
+
+//void displaygll();
+//int depth();
+
+struct gllnode* create_gll(char *str);
+
+struct gllnode* create_gll(char *str) {
+    struct gllnode *new;
+    new = NULL;
+    if(*str != ')') {
+        if(*str == '(') {
+            new = malloc(sizeof(struct gllnode));
+            new->tag = 1;
+            new->s.dlink = create_gll(str+1);
+            new->next = create_gll(str+1);
+        } else {
+            new = malloc(sizeof(struct gllnode));
+            new->tag = 0;
+            new->s.ch = *str;
+            new->next = create_gll(str + 1);
+        }
+    }
+    return new;
+}
+
+
+struct gllnode* depth(struct gllnode *head) {
+    struct gllnode *ptr;
+    int max, ans = 0;
+
+    if(head == NULL)
+        return 0;
+    ptr = head;
+    max = 0;
+    
+    while(ptr != NULL) {
+        if(ptr->tag == 0)
+            ans = 0;
+        else
+          ans = depth(ptr->s.dlink);
+
+        if(ans > max)
+            max = ans;
+        else
+            ans = depth(ptr->next);
+
+    ptr = ptr->next;
+    }
+    return (max + 1);
+}
+
+
+struct gllnode* displaygll() {
+    struct gllnode *new = NULL;
+    ptr = new;
+    
+    while(ptr != NULL) {
+        if(ptr->tag != 0) {
+            printf("\n%u\t", ptr);
+            printf("%d\t", ptr->tag);
+            printf("%u\t", ptr->s.dlink);
+            printf("%u", ptr->next);
+            ptr = ptr->s.dlink;
+        } else {
+            printf("\n%u\t", ptr);
+            printf("%d\t", ptr->tag);
+            printf("%c\t", ptr->s.ch);
+            printf("%u", ptr->next);
+            ptr = ptr->next;
+        }
+    }
+    return(0);
+}
+
+
+int main() {
+    struct gllnode *head;
+    int a;
+    char str[20];
+    printf("Enter a string:");
+    gets(str);
+    head = create_gll(str);
+    displaygll();
+    printf("\nDepth of string is %d",depth(head));
+}
