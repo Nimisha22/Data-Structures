@@ -1,0 +1,127 @@
+Given a list, split it into two sublists — one for the front half, and one for the back half. 
+If the number of elements is odd, the extra element should go in the front list. 
+So FrontBackSplit() on the list {2, 3, 5, 7, 11} should yield the two lists {2, 3, 5} and {7, 11}. 
+Getting this right for all the cases is harder than it looks. You should check your solution 
+against a few cases (length = 2, length = 3, length=4) to make sure that the list gets split
+correctly near the short-list boundary conditions. If it works right for length=4, it probably
+works right for length=1000. You will probably need special case code to deal with the (length <2) cases.
+
+#include <stdio.h>
+#include <stdlib.h>
+
+struct node {
+    int data;
+    struct node *next;
+};
+
+typedef struct {
+    struct node *head, *tail;
+    int size;
+} linkedlist;
+
+struct node* newnode(int data){
+    struct node* ret = calloc(1, sizeof(struct node));
+    ret->data = data;
+    return ret;
+}
+
+linkedlist* constructor(){
+    return calloc(1, sizeof(linkedlist));
+}
+
+linkedlist* append(linkedlist *list, int val){
+    if(list == NULL) list = constructor();
+
+    if(list->head == NULL){
+        list->head = newnode(val);
+        list->tail = list->head;
+        list->size = 1;
+        return list;
+    }
+
+    list->tail->next = newnode(val);
+    list->tail = list->tail->next;
+    list->size++;
+    return list;
+}
+
+linkedlist* insert(linkedlist *list, int index, int val){
+    if(list == NULL)
+        return append(list, val);
+    
+    if(index < 0){
+        struct node *newhead = newnode(val);
+        newhead->next = list->head;
+        list->head = newhead;
+        list->size++;
+        return list;
+    }
+
+    if(index > list->size){
+        struct node *newtail = newnode(val);
+        list->tail->next = newtail;
+        list->tail = newtail;
+        list->size++;
+        return list;
+    }
+}
+
+// this function splits the list in 2 sub lists and returns them
+// if size is odd the front list should have 1 more element than back list
+linkedlist** split(linkedlist *list){
+    if(list == NULL || list->head == NULL) 
+        return calloc(2, sizeof(linkedlist*));
+    
+
+    linkedlist** pair = malloc(2 * sizeof(linkedlist*));
+    linkedlist* front = NULL, *back = NULL;
+
+    if(list->size < 2){
+        front = constructor();
+        front = append(front, list->head->data);
+    }
+
+    else{
+        struct node *current = list->head;
+        int isOdd = (list->size & 1);
+
+        for(int i = 0; i < list->size / 2 + isOdd; i++, current = current->next)
+            front = append(front, current->data);
+        
+        for(int i = list->size / 2; i < list->size && current != NULL; i++, current = current->next)
+            back = append(back, current->data);
+    }
+
+    pair[0] = front;
+    pair[1] = back;
+
+    return pair;
+}
+
+void display(linkedlist *list){
+    if(list == NULL || list->head == NULL){
+        puts("List is empty");
+        return;
+    }
+
+    struct node *current = list->head;
+    for(int i = 0; i < list->size; i++, current = current->next)
+        printf("%d -> ", current->data);
+
+    puts("NULL");
+}
+
+void main() {
+    linkedlist *list = NULL;
+
+    for(int i = 0; i < 4; i++)
+        list = append(list, i);
+    
+    display(list);
+
+    linkedlist** sublists = split(list);
+    linkedlist *front = sublists[0], *rear = sublists[1];
+    display(front);
+    display(rear);
+
+}
