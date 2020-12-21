@@ -1,0 +1,164 @@
+An operating system assigns job to print queues based on the number of pages to be printed (1 to 50 pages).
+You may assume that the system printers are able to print 10 page per minute.  
+Smaller print jobs are printed before larger print jobs and print jobs are processed from a single print
+queue implemented as a priority queue).  The system administrators would like to compare the time required
+to process a set of print jobs using 1, 2, or 3 system printers. Write a program which simulates processing
+100 print jobs of varying lengths using either 1, 2, or 3 printers.  Assume that a print request is made 
+every minute and that the number of pages to print varies from 1 to 50 pages.  To be fair, you will need 
+to process the same set of print jobs each time you add a printer. The output from your program should 
+indicate the order in which the jobs were received, the order in which they were printed, and the time 
+required to process the set of print jobs.  If more than one printer is being used, indicate which printer
+each job was printed on.	7	26	45	60	
+
+#include<stdio.h>
+#define JOBS 300
+
+struct operater {
+    int pjobs[JOBS];
+    int rear1;
+    int front1;
+    int rear2;
+    int front2;
+    int i;
+}s;
+
+
+int main() {
+    int opration;
+    int v;
+    int t = 5;
+    int ts1;
+    int ts2;
+
+    printf("\n1.ENTER JOB IN PRINTER 1");
+    printf("\n2.ENTER JOB IN PRINTER 2");
+    printf("\n3.DELETE FROM PRINTER 1");
+    printf("\n4.DELETE FROM PRINTER 2");
+    printf("\n5.DISPLAY OPERATION OF PRINTER 1");
+    printf("\n6.DISPLAY OPERATION OF PRINTER 2");
+    flash:printf("\nENTER OPERATORS COMMAND NO.");
+    scanf("%d",&opration);
+    
+    switch(opration) {
+        case 1:
+                printf("\n ENTER JOBS  FOR PRINTER 1: ");
+                scanf("%d",&v);
+                enqueue(v);
+                ts1 = v * t;
+                printf("\nTHE TIME TAKEN BY PRINTER 1 IS %d mins/min",ts1);
+                goto flash;
+        case 2:
+                printf("\nENTER JOBS  FOR PRINTER 2: ");
+                scanf("%d",&v);
+                enqueuesec(v);
+                ts2 = v * t;
+                printf("\nTHE TIME TAKEN BY PRINTER 2 IS %d mins/min",ts2);
+                goto flash;
+        case 3:
+                v = dequeue();
+                if(v != -1)
+                    printf("\nTHE SLOT DELETED FROM PRINTER 1 IS %d",v);
+                goto flash;
+        case 4:
+                v=dequeuesec();
+                if(v != -1)
+                    printf("\nTHE SLOT DELETED FROM PRINTER 2 IS %d",v);
+                goto flash;
+        case 5:
+                printf("\nTHE SLOTS OF PRINTER 1 ARE: \n");
+                display();
+                goto flash;
+        case 6: 
+                ("\nTHE SLOTS OF PRINTER 2 ARE: \n");
+                displaysec();
+                goto flash;
+        default:
+                printf("\nINVALID COMMAND!! ENTER AGAIN\n");
+                break;
+    }
+}
+
+
+void enqueue(int paper) {
+    if(s.rear1 == JOBS - 1){
+        printf(" JOB IS DONE\n");
+    } 
+    else if(s.front1 == -1) {
+        s.front1 = 0;
+        s.rear1 = 0;
+        s.pjobs[s.rear1] = paper;
+        s.rear1 = s.rear1 + 1;
+    }
+    else {
+        s.pjobs[s.rear1] = paper;
+        s.rear1 = s.rear1 + 1;
+    }
+}
+
+
+int dequeue() {
+    int paper = 0;
+    if(s.front1 == -1) {
+        printf("PLEASE ENTER THE VALID NO OF PAPER JOB\n");
+    }
+    if(s.front1 == s.rear1){
+        paper = s.pjobs[s.front1];
+        s.pjobs[s.front1] =- 1;
+        s.front1 =- 1;
+        s.rear1 =- 1;
+    } else {
+        paper = s.pjobs[s.front1];
+        s.pjobs[s.front1] =- 1;
+        s.front1 = s.front1 + 1;
+    }
+    return paper;
+}
+
+
+void enqueuesec(int paper) {
+    if(s.rear1 == s.rear2 - 1) {
+        printf("JOB IS DONE\n");
+    } else {
+        if(s.rear2 == JOBS && s.front2 == JOBS) {
+                s.front2 = JOBS - 1;
+                s.rear2 = JOBS - 1;
+                s.pjobs[s.rear2] = paper;
+            } else
+                s.pjobs[--s.rear2]=paper;
+    }
+}
+
+
+int dequeuesec() {
+    int paper = 0;
+    if(s.front2 == JOBS) {
+        printf("NO TASK OF PAPER JOB TO DO\n");
+        return(-1);
+    } else {
+        paper = s.pjobs[s.front2];
+        s.front2 = s.front2+1;
+        if(s.front2 < s.rear2)
+          s.front2 = s.rear2 = JOBS;
+        return paper;
+    }
+}
+
+
+void display() {
+    if(s.front1 == -1)
+        printf("\nPAPERJOBS NOT REQUIRED");
+    else {
+        for(s.i = s.front1; s.i <= s.rear1; s.i++)
+            printf("\t%d", s.pjobs[s.i]);
+    }
+}
+
+
+void displaysec() {
+    if(s.front2 == JOBS)
+        printf("\nPAPERJOBS NOT REQUIRED");
+    else {
+        for(s.i = s.front2; s.i > s.rear2; s.i--)
+            printf("\t%d", s.pjobs[s.i]);
+    }
+}
