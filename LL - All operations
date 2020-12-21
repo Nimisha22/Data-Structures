@@ -1,0 +1,187 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct node {
+    int value;
+    struct node *next;
+} node;
+
+node *newnode(int);
+void insert(node **, int, int);
+void append(node **, int);
+void reverse(node **);
+void kill(node **, int);
+void eliminate(node **, int);
+void removeDuplicates(node**);
+void sortedInsert(node**, int);
+void display(node**);
+
+node *newnode(int value) {
+    node *temp = malloc(sizeof(node));
+    temp->value = value;
+    temp->next = NULL;
+    return temp;
+}
+
+void insert(node **head, int index, int value) {
+    if (*head == NULL) {
+        *head = newnode(value);
+        return;
+    }
+
+    if (index == 0) {
+        node *temp = newnode(value);
+        temp->next = *head;
+        *head = temp;
+        return;
+    }
+
+    node *current = *head;
+    for (int i = 0; i < index - 1; i++)
+        current = current->next;
+
+    node *temp = newnode(value);
+    temp->next = current->next;
+    current->next = temp;
+}
+
+void append(node **head, int value) {
+    if (*head == NULL) {
+        *head = newnode(value);
+        return;
+    }
+
+    node *last = *head;
+    while (last->next != NULL)
+        last = last->next;
+
+    node *temp = newnode(value);
+    last->next = temp;
+}
+
+void reverse(node **head) {
+    if (*head == NULL || (*head)->next == NULL) return;
+
+    node *prev, *current, *next;
+
+    prev = next = NULL;
+    current = *head;
+
+    while (current != NULL) {
+        next = current->next;
+
+        current->next = prev;
+
+        prev = current;
+        current = next;
+    }
+    *head = prev;
+}
+
+void kill(node **head, int index) {
+    if (*head == NULL) return;
+
+    if (index == 0) {
+        node *temp = *head;
+        *head = (*head)->next;
+        free(temp);
+        return;
+    }
+
+    node *current = *head;
+    for (int i = 0; i < index - 1; i++)
+        current = current->next;
+
+    node *temp = current->next;
+    current->next = current->next->next;
+
+    free(temp);
+}
+
+void eliminate(node **head, int value) {
+    node *current = *head;
+
+    if (current->value == value) {
+        *head = *(head + 1);
+        return;
+    }
+
+    while (current->next->value != value)
+        current = current->next;
+
+    node *temp = current->next;
+    current->next = current->next->next;
+
+    free(temp);
+}
+
+void removeDuplicates(node** head){
+    if(head == NULL || *head == NULL || (*head)->next == NULL) return;
+
+    node* prev = *head;
+    node* current = prev->next;
+
+    while(current != NULL){
+        if(current->value == prev->value){
+            prev->next = current->next;
+            free(current);
+            current = prev->next;
+        }
+
+        prev = current;
+        current = current->next;
+    }
+}
+
+void sortedInsert(node** head, int val){
+    if(head == NULL) return;
+    if(*head == NULL) {
+        *head = newnode(val);
+        return;
+    }
+
+    node* prev = *head;
+    node* current = prev->next;
+
+    while(current != NULL && current->value < val){
+        prev = current;
+        current = current->next;
+    }
+
+    prev->next = newnode(val);
+    prev->next->next = current;
+}
+
+void display(node **head) {
+    node *current = *head;
+
+    while (current) {
+        printf("%d ", current->value);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+void fun(struct node *start){
+    if (start == NULL)
+
+        return;
+
+    printf("%d ", start->value);
+
+    if (start->next != NULL)
+
+        fun(start->next->next);
+
+    printf("%d ", start->value);
+}
+
+void main() {
+    node *head = NULL;
+    for (int i = 1; i < 5; i++)
+        append(&head, 2 * i);
+
+    display(&head);
+    sortedInsert(&head, 5);
+    display(&head);
+}
