@@ -1,0 +1,137 @@
+#include<stdio.h>
+
+struct gllnode
+{
+    int tag,data;
+    struct gllnode *next;
+    union
+    {
+        struct gllnode *dlink;
+        char ch;
+    }s;
+};
+struct gllnode *ptr;
+
+
+struct gllnode* create_gll(char *str);
+struct gllnode* create_gll(char *str)
+{
+    struct gllnode *new;
+    new=NULL;
+    if(*str!=')')
+    {
+        if(*str=='(')
+        {
+            new=malloc(sizeof(struct gllnode));
+            new->tag=1;
+            new->s.dlink=create_gll(str+1);
+            new->next=create_gll(str+1);
+        }
+        else
+        {
+            new=malloc(sizeof(struct gllnode));
+            new->tag=0;
+            new->s.ch=*str;
+            new->next=create_gll(str+1);
+        }
+    }
+
+    return new;
+}
+
+
+struct gllnode *copy(struct gllnode *p)
+{
+   static int i;
+   struct gllnode *head,*new,*new1;
+    head = NULL;
+
+    while(1)
+    {
+        if(p->tag==0)
+        {
+            new = create_gll(&p->s.ch);
+        if(head == NULL)
+            head = new;
+        else
+        {
+           new1 = head;
+           while(1)
+        {
+            if(new1->next==NULL)
+            break;
+            new1=new1->next;
+        }
+        new1->next=new;
+        }
+
+        }
+
+        else
+        {
+
+            new = create_gll(ptr);
+            i++;
+            new->s.dlink = copy(p->s.dlink);
+            i--;
+            if(head == NULL)
+            head = new;
+            else
+            {
+              new1 = head;
+              while(1)
+              {
+            if(new1->next==NULL)
+            break;
+            new1=new1->next;
+              }
+        new1->next=new;
+            }
+        }
+            if(p->next==NULL)
+            {
+            return(head);
+
+            }
+            p=p->next;
+    }
+}
+
+
+void displaygll()
+{
+    struct gllnode *new;
+    ptr=new;
+    while(ptr!=NULL)
+    {
+        if(ptr->tag!=0)
+        {
+            printf("\n%u\t",ptr);
+            printf("%d\t",ptr->tag);
+            printf("%u\t",ptr->s.dlink);
+            printf("%u",ptr->next);
+            ptr=ptr->s.dlink;
+        }
+        else
+        {
+            printf("\n%u\t",ptr);
+            printf("%d\t",ptr->tag);
+            printf("%c\t",ptr->s.ch);
+            printf("%u",ptr->next);
+            ptr=ptr->next;
+        }
+    }
+}
+
+
+int main()
+{
+    struct gllnode *head;
+    int a;
+    char str[20];
+    printf("Enter a string:");
+    gets(str);
+    head=create_gll(str);
+    displaygll();
+    printf("\ncopy of string is %d",copy(head));
+}
