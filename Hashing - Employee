@@ -1,0 +1,221 @@
+Write a program to simulate employee database as a hash table. Search a particular faculty using Mid
+Sq. method as a hash function for linear probing with chaining with replacement method of collision
+technique. Assume suitable data for faculty record.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+
+#define TABLESIZE 10
+
+typedef struct {
+    char name[30];
+    int id;
+    int salary;
+} employee;
+
+typedef struct {
+    employee *e;
+    int chain;
+} row;
+
+row hashtable[TABLESIZE] = {0};
+
+
+// this function returns number of digits in given parameter
+int digits(long int number){
+    int d = 0;
+
+    while(number > 0){
+        d++;
+        number /= 10;
+    }
+
+    return d;
+}
+
+// this function returns the hashed index
+int hash(int key){
+    key *= key;
+    int mid = (int) (key / pow(10, digits(key) / 2)) % TABLESIZE;
+    return mid;
+}
+
+
+// this value returns the index of element 
+// which comes just before @value in the chain of @hashedIndex
+int getprevious(int value, int hashedIndex){
+    int previous = hashedIndex;
+    int current = hashedIndex;
+
+    while(hashtable[current].e->id != value){
+        previous = current;
+        current = hashtable[current].chain;
+    }
+
+    return previous;
+}
+
+// this function returns last chained index of current index
+int getlastchain(int hashedIndex){
+
+    while(hashtable[hashedIndex].chain != 0)
+        hashedIndex = hashtable[hashedIndex].chain;
+    
+    return hashedIndex;
+}
+
+// helper function for put function
+// it find the next available slot in hashtable
+int nextslot(int hashedIndex){
+    int current = hashedIndex;
+
+    // if current chain is zero
+    if(hashtable[current].chain == 0 &&
+        // and next index is available 
+        hashtable[current + 1].e == NULL){
+        
+        // return next index
+        return current + 1;
+    }
+
+    // if next index not available
+    do {
+        current = getlastchain(current);
+
+        // now chain of current index is 0
+        // check if next index is available
+        if(hashtable[current + 1].e == NULL && hashtable[current + 1].chain == 0)
+            return current + 1;
+        
+        // if not available then follow the chain of next index
+        current += 1;
+    } while(hashtable[current].e != NULL);
+}
+
+
+// this function puts a employee content into hashtable
+void empcpy(employee *dest, employee *src){
+    dest->id = src->id;
+    dest->salary = src->salary;
+    strncpy(dest->name, src->name, 30);
+}
+
+// this function puts a value into haashtable
+void put(employee *e){
+    int index = hash(e->id);
+
+    // if no collision then place it here
+    if(hashtable[index].e == NULL && hashtable[index].chain == 0){
+        hashtable[index].e = malloc(sizeof(employee));
+        empcpy(hashtable[index].e, e);
+    }
+    
+
+    // if collision occurs
+    // then find if current number is sitting in its proper place
+    else if(hash(hashtable[index].e->id) == index){
+        // then put the new value into next available slot
+        int lchain = getlastchain(index);
+        int slot = nextslot(index);
+
+        hashtable[lchain].chain = slot;
+        hashtable[slot].e = malloc(sizeof(employee));
+        empcpy(hashtable[slot].e, e);
+    }
+
+    // otherwise kick the current number
+    // and place the new number into current index
+    // and place the old kicked number into last of chain
+    else {
+        employee* kicked = malloc(sizeof(employee));
+        
+        empcpy(kicked, hashtable[index].e);
+        int prev_kicked = getprevious(kicked->id, hash(kicked->id));
+        int lchain = getlastchain(index);
+        int slot = nextslot(lchain);
+
+        // update the chain of element which comes just before the kicked number
+        hashtable[prev_kicked].chain = slot;
+
+        // put the new value in its proper place
+        empcpy(hashtable[index].e, e);
+        hashtable[index].chain = 0;
+
+        // put the kicked number at last of chain
+        hashtable[lchain].chain = 0;
+        hashtable[slot].e = malloc(sizeof(employee));
+        empcpy(hashtable[slot].e, kicked);
+        free(kicked);
+    }
+}
+
+void display(row *hashtab){
+    puts("Serial\tName\t\tID\tSalary");
+
+    for (int i = 0; i < TABLESIZE; i++)
+    {
+        printf("%d\t", i);
+        if(hashtab[i].e)
+            printf("%-15s\t%d\t%d\n", hashtab[i].e->name, hashtab[i].e->id, hashtab[i].e->salary);
+        else puts("");
+
+        // puts("");
+    }
+
+    puts("");
+}
+
+void menu(){
+    puts("\n1. Insert a student");
+    puts("2. Remove a student");
+    puts("3. Display");
+    puts("4. Exit");
+}
+
+void start() {
+    int choice;
+    employee *temp;
+
+    repeat:
+    printf("\nEnter your choice: ");
+    scanf("%d", &choice);
+    // getchar();
+    fflush(stdin);
+    temp = malloc(sizeof(employee));
+
+    switch(choice){
+        case 1:
+            printf("Enter name: ");
+            fgets(temp->name, 30, stdin);
+            printf("Enter ID: ");
+            scanf("%d", &temp->id);
+            printf("Enter salary: ");
+            scanf("%d", &temp->salary);
+
+            // replace the \n character in temp->name with null character
+            temp->name[strlen(temp->name) - 1] = '\0';
+
+            put(temp);
+            free(temp);
+            break;
+        case 2:
+            break;
+        case 3:
+            display(hashtable);
+            break;
+        case 4:
+            return;
+        default:
+            puts("Please enter a valid choice!");
+            menu();
+    }   
+
+    goto repeat;
+}
+
+void main() {
+    menu();
+    start();
+}
