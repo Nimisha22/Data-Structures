@@ -1,0 +1,131 @@
+// Addition and deletion all cases
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct node {
+    int value;
+    struct node *next, *prev;
+} node;
+
+void append(node**, int);
+void insert(node**, int, int);
+void kill(node**, int index);
+void eliminate(node**, int value);
+
+node* newnode(int value){
+    node* temp = malloc(sizeof(node));
+    temp->value = value;
+    temp->next = NULL;
+    temp->prev = NULL;
+    return temp;
+}
+
+void append(node **head, int value){
+    if(*head == NULL){
+        *head = newnode(value);
+        return;
+    }
+
+    node *current = *head;
+
+    while(current->next != NULL) 
+        current = current->next;
+    
+    node *temp = newnode(value);
+    current->next = temp;
+    temp->prev = current;
+}
+
+void insert(node **head, int index, int value){
+    if(*head == NULL){
+        *head = newnode(value);
+        return;
+    }
+
+    if(index == 0) {
+        node *temp = newnode(value);
+        temp->next = *head;
+        (*head)->prev = temp;
+        *head = temp;
+        return;
+    }
+
+    node *current = *head;
+
+    for (int i = 0; i < index; i++)
+        current = current->next;
+    
+    node *temp = newnode(value);
+
+    temp->next = current;
+    temp->prev = current->prev;
+    current->prev = temp;
+}
+
+void kill(node **head, int index){
+    if(*head == NULL) return;
+
+    if(index == 0){
+        node* temp = *head;
+        *head = (*head)->next;
+        free(temp);
+        return;
+    }
+    node *current = *head;
+
+    for (int i = 0; i < index; i++){
+        current = current->next;
+        // printf("Index: %d\n", i);
+    }
+    
+    current->next->prev = current->prev;
+    current->prev->next = current->next;
+    free(current);
+}
+
+void eliminate(node **head, int value){
+    if(*head == NULL) return;
+
+    node *current = *head;
+    if(current->value == value){
+        current->next->prev = NULL;
+        *head = current->next;
+        free(current);
+        return;
+    }
+
+    while(current != NULL && current->value != value)
+        current = current->next;
+    
+    if(current && current->value == value){
+        current->prev->next = current->next;
+        current->next->prev = current->prev;
+        free(current);
+    }
+}
+
+void display(node **head){
+    node *current = *head;
+
+    while(current){
+        printf("%d ", current->value);
+        current = current->next;
+    }
+
+    printf("\n");
+}
+
+void main(){
+    node *head = NULL;
+
+    for (int i = 0; i < 10; i++)
+        append(&head, i);
+
+    display(&head);
+    // insert(&head, 0, 100);
+    // kill(&head, 4);
+    eliminate(&head, 0);
+    
+    display(&head);
+}
